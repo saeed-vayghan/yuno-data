@@ -73,5 +73,3 @@ mlruns/
 mlartifacts/
 compose/volumes/
 *.log
-
-artifacts
