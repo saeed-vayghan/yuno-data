@@ -114,7 +114,7 @@ Time budget per phase (with AI help):
 | 1 | Generator + validation gate | 25 min | Data generation 15–20 |
 | 2 | dbt pipeline + tests | 35 min | Pipeline 25–35 |
 | 3 | Analysis + figures + findings | 40 min | Analysis 30–40 |
-| 4 | Report + brief CLI questions + README | 20 min | Docs 15–20 |
+| 4 | Report + README (core), then brief CLI questions (first stretch step) | 20 min | Docs 15–20 |
 | **Core total** | | **135 min** | 100–115 (core lines only) |
 | 5 | Stretch: alerts, recommendations, dashboard wiring | 40 min | Stretch 20–30 |
 | 6 | Packaging: Docker, CI, fresh-clone check | 15 min | (not in brief) |
@@ -283,7 +283,7 @@ Time budget per phase (with AI help):
 - **Files:** `src/casarecon/core/db.py`, `src/casarecon/core/queries.py`.
 - **Do:**
   - `connect()`: `duckdb.connect(path, read_only=True)` as a context manager; on lock error raise `DbBusy("rebuilding, retry")`.
-  - Functions with fixed, parameterized filters (no raw SQL from users): `segment_rates(type)`, `psp_weekly()`, `worst_week(month)`, `outliers(min_usd)`, `cause_summary()`, `pending()`, `lag_by_country_tier()`, `transactions(filters)`.
+  - Functions with fixed, parameterized filters (no raw SQL from users): `segment_rates(type)`, `psp_weekly()`, `worst_week(month)`, `query_transactions(filters, min_usd=None, limit=None)` (used by `recon query` and the Outliers page), `cause_summary()`, `pending()`, `lag_by_country_tier()`, `mask_id(customer_id)` (`cus_••••` + last 4; used by CLI, UI and CSV).
 - **Done when:** `pytest tests/test_cli.py -k core` passes on the 500-row fixture DB.
 - **Serves:** FR3 (shared core); Tech 15 (no logic in UI).
 
@@ -311,9 +311,9 @@ Time budget per phase (with AI help):
 - **Goal:** numbers in one place; one chart per finding.
 - **Files:** `src/casarecon/analysis/findings.py`, `src/casarecon/analysis/figures.py`; wire `analyze`.
 - **Do:**
-  - `reports/findings.json`: list of `{id, key, headline, metric, segment, n, rate, ci, peer_rate, q, usd_quarter, share_of_loss, likely_cause, figure}`, ranked by $.
+  - `reports/findings.json`: list of `{id, key, headline, metric, segment, n, rate, ci, peer_rate, lift, q, usd_quarter, share_of_loss, likely_cause, figure}`, ranked by $.
   - Plotly figures: country bars with CI, PSP × country heatmap, tier chart, weekday chart, lag vs loss, cause Pareto, weekly trend. PNG via kaleido; on failure write `.html` and warn.
-- **Done when:** `uv run recon analyze` exits 0; `findings.json` has ≥ 4 findings; `reports/figures/` has one file per finding.
+- **Done when:** `uv run recon analyze` exits 0; on the full run `findings.json` has ≥ 4 findings with q < 0.05, each with non-null `n`, `rate`, `ci`, `peer_rate`, `lift`, `q` and `usd_quarter`; `reports/figures/` has one file per finding.
 - **Serves:** Insight 20; deliverable "analysis outputs".
 
 ---
@@ -323,29 +323,30 @@ Time budget per phase (with AI help):
 **S4.1 `recon report` → FINDINGS.md**
 - **Goal:** a report with no hand-typed numbers.
 - **Files:** `src/casarecon/report/render.py`, `src/casarecon/report/templates/FINDINGS.md.j2`, `reports/FINDINGS.md`.
-- **Do:** Jinja2 (ships with dbt) renders: one-page summary on top; each finding in the fixed format ("**F#. Headline.** X% of … (n, 95% CI, vs …, q). $ impact … Likely cause … Action: see R#"); figure under each; sensitivity table; truth check; "tip: ruled out"; latest alerts section (if present).
-- **Done when:** `uv run recon report` exits 0; `grep -c '^\*\*F[0-9]' reports/FINDINGS.md` ≥ 4.
+- **Do:** Jinja2 (ships with dbt) renders: one-page summary on top; each finding in the fixed format ("**F#. Headline.** X% of … (n, 95% CI, vs …, lift, q). $ impact … Likely cause … Action: see R#"); figure under each; sensitivity table; truth check; "tip: ruled out"; latest alerts section (if present).
+- **Done when:** `uv run recon report` exits 0; `grep -c '^\*\*F[0-9]' reports/FINDINGS.md` ≥ 4; each F# paragraph shows n, 95% CI, lift, q and $, and links a figure file that exists.
 - **Serves:** FR2 acceptance; Insight 20; "Done: ≥ 3–4 patterns".
 
-**S4.2 Brief questions in the CLI**
-- **Goal:** answer both example questions from the terminal.
-- **Files:** `cli.py` (`query`, `worst-week`), `tests/test_cli.py`.
-- **Do:**
-  - `recon worst-week --month last`: last full calendar month; PSP-weeks by `week_month`; ranked by net USD loss; gross beside it; n < 30 marked "low sample".
-  - `recon query --min-usd 50 [--psp] [--country] [--format table|csv|json]`: `abs_residual_usd > 50`, sorted desc.
-- **Done when:** `uv run recon worst-week --month last` prints one ranked table; `uv run recon query --min-usd 50 --format csv | head` shows rows; CliRunner tests pass.
-- **Serves:** FR3 acceptance (both questions); Stretch 10.
-
-**S4.3 `recon all` + README**
+**S4.2 `recon all` + README**
 - **Goal:** one command end to end; docs a reviewer can follow.
 - **Files:** `cli.py` (`all`), `README.md`.
 - **Do:**
   - `all` = generate → build → validate → analyze → alerts (skipped until Phase 5) → report. Stops at the first non-zero exit.
   - README sections (playbook §12): Problem · Quick start (3 run paths, `recon --help`, URL) · Key findings (links to FINDINGS) · Recommendations · Approach & architecture (diagram, layers, why DuckDB + dbt) · Definitions & assumptions (money, cross-border, FX formula, categories, week rule, local time, CFO 18% vs our 14% flagged / ~33% non-exact) · How to read outputs · Data (patterns, realized mix) · Monitoring · Limitations & scale path · AI-assisted workflow.
-- **Done when:** `make clean && make all` exits 0 in about a minute; every README command runs as written.
-- **Serves:** Deliverables 1 and 4; Tech 15; "Done: well-documented".
+  - Inside "Definitions & assumptions", one `### Assumptions` list: data is synthetic and follows the brief ranges; USD at the auth-day rate; expected settle removes the FX move; cut-offs live in `thresholds.yaml`; times are merchant local time; a week belongs to the month of its Thursday; no tips in the data; $ impact and the $127k comparison are estimates; recommendation savings use a stated reduction %.
+- **Done when:** `make clean && make all` exits 0 in about a minute; every README command runs as written; README has all 11 sections and an `### Assumptions` heading; running `make all` twice gives the same `sha256sum reports/findings.json`; `make test` passes.
+- **Serves:** Deliverables 1 and 4; Tech 15; "Done: well-documented"; "Done: reproducibility".
 
-**Core checkpoint:** FR1 + FR2 + docs done. Commit here.
+**Core checkpoint:** FR1 + FR2 + docs done. Commit here, including the full-run outputs: `reports/FINDINGS.md`, `findings.json`, `analysis/*.csv`, `figures/*`. Everything below is stretch or packaging.
+
+**S4.3 Brief questions in the CLI (first stretch step)**
+- **Goal:** answer both example questions from the terminal.
+- **Files:** `cli.py` (`query`, `worst-week`), `tests/test_cli.py`.
+- **Do:**
+  - `recon worst-week --month last [--format table|json]`: last full calendar month; PSP-weeks by `week_month`; ranked by net USD loss; gross beside it; n < 30 marked "low sample".
+  - `recon query --min-usd 50 [--psp] [--country] [--format table|csv|json]`: `abs_residual_usd > 50`, sorted desc; customer IDs via `mask_id`.
+- **Done when:** `uv run recon worst-week --month last` prints one ranked table; `uv run recon query --min-usd 50 --format csv | head` shows rows; CliRunner tests pass.
+- **Serves:** FR3 acceptance (both questions); Stretch 10.
 
 ---
 
@@ -367,14 +368,16 @@ Time budget per phase (with AI help):
 - **Goal:** 3–5 ranked actions with $.
 - **Files:** `src/casarecon/report/templates/RECOMMENDATIONS.md.j2`, `reports/RECOMMENDATIONS.md`.
 - **Do:** template holds action text, owner and implementation per finding `key` (e.g. PSP_B AR escalation, FX rate lock, PSP_D rounding fix, PSP_C fee dispute, CO large-order settlement SLA). Numbers come from `findings.json`: evidence F#, excess loss, saving = excess × stated reduction %. Ranked by $.
-- **Done when:** `uv run recon report` writes 3–5 rows; each row cites an F# that exists in FINDINGS.md.
+- **Done when:** `uv run recon report` writes 3–5 rows; each row cites an F# that exists in FINDINGS.md and shows a $ impact, an owner and an implementation line.
 - **Serves:** FR4 acceptance; Stretch 10.
 
 **S5.3 Dashboard data wiring (UI design out of scope)**
 - **Goal:** the 5 pages get their data from `core`, never their own SQL.
 - **Files:** `src/casarecon/dashboard/app.py`, `src/casarecon/dashboard/pages/*.py`; wire `dashboard` (`streamlit run … --server.port 8501`); Makefile `app`.
-- **Do:** `@st.cache_data` keyed on the DuckDB file's mtime; catch `DbBusy` → show "rebuilding, retry". Overview uses `psp_weekly` + `worst_week`; Outliers uses `outliers(min_usd=50)` + CSV download; Root causes reads `findings.json`; Alerts reads `alerts.jsonl`.
-- **Done when:** `make app` serves `localhost:8501`; the worst-week card equals `recon worst-week --month last`; Outliers row count equals `recon query --min-usd 50 | wc -l` (minus header).
+- **Do:**
+  - `@st.cache_data` keyed on the DuckDB file's mtime; catch `DbBusy` → show "rebuilding, retry". Overview uses `psp_weekly` + `worst_week`; Outliers uses `query_transactions(min_usd=50)` + CSV download; Root causes reads `mart_cause_summary`, `findings.json`, `FINDINGS.md` and `RECOMMENDATIONS.md`; Alerts reads `alerts.jsonl`.
+  - Add to `core/queries.py` the other read functions the UI/UX plan lists (`status`, `kpis`, `weekly_trend`, `week_over_week`, `category_mix`, `outlier_summary`, `transaction_detail`, `similar_count`, `excess_loss`, `filter_options`, `load_alerts`, `load_recommendations`, `load_findings`). Build them page by page, in the UI plan's build order.
+- **Done when:** `make app` serves `localhost:8501`; the worst-week card equals `recon worst-week --month last`; Outliers row count equals `recon query --min-usd 50 --format csv | wc -l` (minus header); each new core function has a pytest on the 500-row fixture DB.
 - **Serves:** FR3 dashboard; Stretch 10.
 
 ---
@@ -427,7 +430,7 @@ Time budget per phase (with AI help):
 ## Definition of done
 
 **Brief deliverables**
-- [ ] Working code + README with run steps (S0–S4.3) → Deliverable 1.
+- [ ] Working code + README with run steps (S0–S4.2) → Deliverable 1.
 - [ ] Generator script + seed + 500-row sample; ≥ 500 rows, 3 months, 4 countries, 5 PSPs, status mix, lag outliers, metadata (S1) → Deliverable 2.
 - [ ] Analysis outputs: `reports/analysis/*.csv`, `findings.json`, figures, FINDINGS.md (S3–S4.1) → Deliverable 3.
 - [ ] Docs: approach, findings, assumptions, how to read results (README + FINDINGS) → Deliverable 4.

@@ -41,7 +41,7 @@
 
 **Flow B: "Show me all transactions with discrepancies over $50"** (1 click)
 1. Click **Outliers** in the sidebar.
-2. The table already shows rows with discrepancy after FX ≥ $50 (USD), sorted largest first.
+2. The table already shows rows with discrepancy after FX over $50 (USD, > 50), sorted largest first.
 3. Search, sort, or change the minimum.
 4. Click "Download CSV". The file holds all matching rows, with masked customer IDs.
 
@@ -222,7 +222,7 @@ States: no rows → "No transactions match these filters." + Clear filters · gr
 | CSV download | `st.download_button` | same query, all rows, masked customer IDs |
 
 Notes:
-- Every row with |residual| ≥ $50 is `large` by rule (≥ $20), so "over $50" is always a subset of outliers. Setting min to 0 shows all `large` rows.
+- Every row with |residual| over $50 is `large` by rule (≥ $20), so "over $50" is always a subset of outliers. Setting min to 0 shows all `large` rows.
 - "Why flagged" text comes from core, not built in the page.
 
 States: min too high → "No transactions over $5,000. Try a lower minimum." · no row selected → "Select a row to see why it was flagged."
@@ -422,7 +422,7 @@ Microcopy rules:
 - [ ] No motion or auto-refresh.
 
 ## Build order
-Prerequisite: marts built and core functions (`worst_week`, `query_transactions`, `kpis`, `weekly_trend`, `segment_rates`, `cause_summary`, `load_alerts`, `load_recommendations`, `mask_id`) exist with pytest coverage.
+Prerequisite: start only after the Implementation Plan's core checkpoint (end of Phase 4: pipeline, analysis, FINDINGS and README done). Marts are built; `worst_week`, `query_transactions`, `segment_rates`, `cause_summary` and `mask_id` exist from Implementation Plan S3.1. Each step below adds the other core read functions it needs (Implementation Plan S5.3), each with a pytest.
 
 | # | Step | Done when |
 |---|---|---|
@@ -436,7 +436,7 @@ Prerequisite: marts built and core functions (`worst_week`, `query_transactions`
 | 8 | Alerts page | Severity counts match `alerts.jsonl`; 500-row run shows "not enough data" |
 | 9 | Root causes & actions | Cause bars sum to total loss; 3–5 recommendations render; missing file message shows |
 | 10 | CLI ↔ UI consistency test + full AppTest suite in `make test` | `make test` green on the fixture DB |
-| 11 | Polish: microcopy pass, accessibility checklist, 2 README screenshots (card, Outliers) | Checklist ticked; both brief questions answered in ≤ 2 clicks by someone new |
+| 11 | Polish: microcopy pass, accessibility checklist, 2 README screenshots (card, Outliers), README "Monitoring" section (how to open the app, what each page is for, how to answer both brief questions) | Checklist ticked; both brief questions answered in ≤ 2 clicks by someone new, using only the README |
 
 ## UI test plan
 Tests use `streamlit.testing.v1.AppTest` on a small fixture DuckDB (built once per session from the 500-row seed), plus pure pytest for formatters.
@@ -448,7 +448,7 @@ Tests use `streamlit.testing.v1.AppTest` on a small fixture DuckDB (built once p
 | 3 | Locked DB | Monkeypatch core to raise the DuckDB lock error → "being rebuilt" text + Retry button |
 | 4 | Worst week (CLI ↔ UI) | `CliRunner` runs `recon worst-week --month last --format json`; its PSP, week and net USD equal `core.worst_week()` and the Overview card text |
 | 5 | Over $50 (CLI ↔ UI) | Set of `txn_id` from `recon query --min-usd 50 --format csv` equals the Outliers dataframe and its CSV bytes |
-| 6 | Default filter | Outliers `number_input` value = 50; every row has |disc. after FX| ≥ 50 |
+| 6 | Default filter | Outliers `number_input` value = 50; every row has |disc. after FX| > 50 |
 | 7 | Filter change | Set min to 100 and PSP = PSP_B → all rows match both |
 | 8 | URL params | `at.query_params["psp"] = "PSP_B"` → Drill-down multiselect preset; unknown value dropped |
 | 9 | Empty state | Filters with no match → "No transactions match these filters." |

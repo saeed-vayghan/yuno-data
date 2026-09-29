@@ -123,3 +123,43 @@
 - Done by a team: Architect, Engineer, and a front-end engineer/designer.
 
 ---
+
+## [010] Implementation plans judged against goals
+
+**Time:** 2026-09-29 16:38 CEST · **Phase:** Review
+
+**Summary:** Judged the implementation plans to make sure they meet the scenario goals and Definitions of Done (DoDs).
+
+**Details:**
+- Reviewed the implementation plans against the scenario goals.
+- Checked that the plans cover the DoDs.
+
+---
+
+## [011] Build instructions written for all services
+
+**Time:** 2026-09-29 16:52 CEST · **Phase:** Docs
+
+**Summary:** Wrote down instructions for building each service and feature of the system.
+
+**Details:**
+- Covered infra, backend, data pipeline, and frontend.
+- Instructions describe the services and features to build.
+
+---
+
+## [012] Time split: half planning, half building
+
+**Time:** 2026-09-29 16:53 CEST · **Phase:** Decision
+
+**Summary:** About half of the 2-hour budget went to thinking, planning and review, and the other half went to development and tests.
+
+**Details:**
+- ~1 hour: information gathering, planning, and reviewing the process and plans.
+- ~1 hour: development and tests.
+- In real daily work, extra time on information gathering and planning is often crucial.
+- Good planning covers most corner cases early.
+
+**Decisions:** Invest heavily in planning up front, because it leads to a solid, maintainable, scalable and secure plan and delivery.
+
+---
