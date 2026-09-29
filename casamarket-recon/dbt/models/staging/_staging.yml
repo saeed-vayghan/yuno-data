@@ -1,0 +1,45 @@
+version: 2
+
+models:
+  - name: stg_transactions
+    description: Raw transactions, trimmed and typed. Keeps failed and pending rows.
+    config: {contract: {enforced: true}}
+    columns:
+      - name: transaction_id
+        data_type: varchar
+        data_tests: [unique, not_null]
+      - {name: customer_id, data_type: varchar, data_tests: [not_null]}
+      - {name: product_category, data_type: varchar}
+      - name: country
+        data_type: varchar
+        data_tests: [{accepted_values: {arguments: {values: [MX, CO, AR, CL]}}}]
+      - name: currency
+        data_type: varchar
+        data_tests: [{accepted_values: {arguments: {values: [MXN, COP, ARS, CLP]}}}]
+      - name: payer_currency
+        data_type: varchar
+        data_tests: [{accepted_values: {arguments: {values: [MXN, COP, ARS, CLP, USD]}}}]
+      - {name: is_cross_border, data_type: boolean, data_tests: [not_null]}
+      - name: psp
+        data_type: varchar
+        data_tests: [{accepted_values: {arguments: {values: [PSP_A, PSP_B, PSP_C, PSP_D, PSP_E]}}}]
+      - name: status
+        data_type: varchar
+        data_tests: [{accepted_values: {arguments: {values: [settled, pending, failed]}}}]
+      - {name: auth_ts, data_type: timestamp, data_tests: [not_null]}
+      - {name: settle_ts, data_type: timestamp}
+      - {name: authorized_amount, data_type: bigint, data_tests: [not_null]}
+      - {name: settled_amount, data_type: bigint}
+      - {name: item_count, data_type: integer, data_tests: [not_null]}
+      - {name: risk_score, data_type: double, data_tests: [not_null]}
+      - {name: card_bin_country, data_type: varchar}
+
+  - name: stg_fx_rates
+    description: Daily FX rates (local per USD), one row per currency x day.
+    columns:
+      - name: fx_key
+        data_tests: [unique, not_null]
+      - {name: rate_date, data_tests: [not_null]}
+      - {name: currency, data_tests: [not_null]}
+      - name: local_per_usd
+        data_tests: [not_null]

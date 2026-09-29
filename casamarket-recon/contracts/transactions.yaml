@@ -1,0 +1,19 @@
+# Raw transactions contract (IMPLEMENTATION-PLAN S0.3). Money = int minor units.
+columns:
+  transaction_id:    {type: str, nullable: false, format: "txn_ + 12 hex", pii: none}
+  customer_id:       {type: str, nullable: false, format: "cus_ + 12 hex token", pii: token}
+  product_category:  {type: str, nullable: false, pii: none}
+  country:           {type: str, nullable: false, enum: [MX, CO, AR, CL], pii: none}
+  currency:          {type: str, nullable: false, enum: [MXN, COP, ARS, CLP], pii: none}
+  payer_currency:    {type: str, nullable: false, enum: [MXN, COP, ARS, CLP, USD], pii: none}
+  is_cross_border:   {type: bool, nullable: false, pii: none}
+  psp:               {type: str, nullable: false, enum: [PSP_A, PSP_B, PSP_C, PSP_D, PSP_E], pii: none}
+  status:            {type: str, nullable: false, enum: [settled, pending, failed], pii: none}
+  auth_ts:           {type: timestamp, nullable: false, unit: merchant local time, pii: none}
+  settle_ts:         {type: timestamp, nullable: true, unit: merchant local time, note: null unless settled, pii: none}
+  authorized_amount: {type: int, nullable: false, unit: minor units, pii: none}
+  settled_amount:    {type: int, nullable: true, unit: minor units, note: null unless settled, pii: none}
+  item_count:        {type: int, nullable: false, min: 1, pii: none}
+  risk_score:        {type: float, nullable: false, min: 0, max: 1, pii: none}
+  card_bin_country:  {type: str, nullable: false, format: ISO-2, pii: none}
+banned_fields: [pan, card_number, cvv, email, name]

@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: int_transactions_usd
+    description: Transactions + currency exponent, VAT flags, PSP fee, auth-day and settle-day FX.
+    columns:
+      - name: transaction_id
+        data_tests: [unique, not_null]
+      - {name: amount_usd, data_tests: [not_null]}
+      - {name: fx_auth, data_tests: [not_null]}
+      - name: fx_settle
+        data_tests:
+          - not_null: {config: {where: "status = 'settled'"}}

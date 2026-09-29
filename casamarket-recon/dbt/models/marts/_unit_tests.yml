@@ -1,0 +1,51 @@
+version: 2
+
+# Hand-worked rows (minor units). Input = int_transactions_usd, the fact model's only input.
+unit_tests:
+  - name: ut_categories_and_boundaries
+    model: fct_transaction_discrepancy
+    given:
+      - input: ref('int_transactions_usd')
+        rows:
+          # FX row: cross-border MXN, 18.00 -> 18.18: expected 101000, residual 0
+          - {transaction_id: fx, status: settled, psp: PSP_A, currency: MXN, exponent: 2, is_cross_border: true, tax_recalc: true, item_count: 1, risk_score: 0.1, authorized_amount: 100000, settled_amount: 101000, fx_auth: 18.00, fx_settle: 18.18}
+          # CLP (0 decimals): -5.0% is not > 5 -> meaningful, $ -5.00
+          - {transaction_id: clp, status: settled, psp: PSP_A, currency: CLP, exponent: 0, is_cross_border: false, tax_recalc: false, item_count: 1, risk_score: 0.1, authorized_amount: 95000, settled_amount: 90250, fx_auth: 950.0, fx_settle: 950.0}
+          # brief: "2 cents on $500" is noise
+          - {transaction_id: two_cents, status: settled, psp: PSP_A, currency: MXN, exponent: 2, is_cross_border: false, tax_recalc: true, item_count: 1, risk_score: 0.1, authorized_amount: 900000, settled_amount: 899964, fx_auth: 18.0, fx_settle: 18.0}
+          # brief: "$20 is not" -> exactly -$20.00 is large; -$19.99 at -4.0% is meaningful
+          - {transaction_id: usd20, status: settled, psp: PSP_A, currency: MXN, exponent: 2, is_cross_border: false, tax_recalc: true, item_count: 1, risk_score: 0.1, authorized_amount: 1000000, settled_amount: 960000, fx_auth: 20.0, fx_settle: 20.0}
+          - {transaction_id: usd1999, status: settled, psp: PSP_A, currency: MXN, exponent: 2, is_cross_border: false, tax_recalc: true, item_count: 1, risk_score: 0.1, authorized_amount: 1000000, settled_amount: 960020, fx_auth: 20.0, fx_settle: 20.0}
+          # 1 minor unit short -> rounding
+          - {transaction_id: rnd, status: settled, psp: PSP_A, currency: CLP, exponent: 0, is_cross_border: false, tax_recalc: false, item_count: 1, risk_score: 0.1, authorized_amount: 95000, settled_amount: 94999, fx_auth: 950.0, fx_settle: 950.0}
+          # not settled -> no category
+          - {transaction_id: pend, status: pending, psp: PSP_A, currency: CLP, exponent: 0, is_cross_border: false, tax_recalc: false, item_count: 1, risk_score: 0.1, authorized_amount: 95000, settled_amount: null, fx_auth: 950.0, fx_settle: null}
+    expect:
+      rows:
+        - {transaction_id: fx,        residual_usd: 0.0,    category: fx_tolerance, likely_cause: fx_timing,      is_meaningful: false, direction: none,  why_flagged: null}
+        - {transaction_id: clp,       residual_usd: -5.0,   category: meaningful,   likely_cause: psp_adjustment, is_meaningful: true,  direction: under, why_flagged: "2–5%"}
+        - {transaction_id: two_cents, residual_usd: -0.02,  category: fx_tolerance, likely_cause: tax_recalc,     is_meaningful: false, direction: under, why_flagged: null}
+        - {transaction_id: usd20,     residual_usd: -20.0,  category: large,        likely_cause: psp_adjustment, is_meaningful: true,  direction: under, why_flagged: "≥ $20"}
+        - {transaction_id: usd1999,   residual_usd: -19.99, category: meaningful,   likely_cause: psp_adjustment, is_meaningful: true,  direction: under, why_flagged: "2–5%"}
+        - {transaction_id: rnd,       residual_usd: 0.0,    category: rounding,     likely_cause: psp_rounding,   is_meaningful: false, direction: under, why_flagged: null}
+        - {transaction_id: pend,      residual_usd: null,   category: null,         likely_cause: null,           is_meaningful: false, direction: null,  why_flagged: null}
+
+  - name: ut_likely_causes
+    model: fct_transaction_discrepancy
+    given:
+      - input: ref('int_transactions_usd')
+        rows:
+          # partial capture: 2 items, 1 captured (-50%)
+          - {transaction_id: partial, status: settled, psp: PSP_A, currency: MXN, exponent: 2, is_cross_border: false, tax_recalc: true, item_count: 2, risk_score: 0.1, authorized_amount: 100000, settled_amount: 50000, fx_auth: 18.0, fx_settle: 18.0}
+          # fraud hold: 15% withheld, risk 0.9, single item (AR: no tax recalc)
+          - {transaction_id: fraud, status: settled, psp: PSP_A, currency: ARS, exponent: 2, is_cross_border: false, tax_recalc: false, item_count: 1, risk_score: 0.9, authorized_amount: 10000000, settled_amount: 8500000, fx_auth: 1000.0, fx_settle: 1000.0}
+          # tax recalculation: domestic MX, +1% (both signs allowed)
+          - {transaction_id: tax, status: settled, psp: PSP_A, currency: MXN, exponent: 2, is_cross_border: false, tax_recalc: true, item_count: 1, risk_score: 0.1, authorized_amount: 100000, settled_amount: 101000, fx_auth: 18.0, fx_settle: 18.0}
+          # PSP rounding to 1,000 major units: COP cross-border settled 400,000.00 (ends in 00000)
+          - {transaction_id: step, status: settled, psp: PSP_D, currency: COP, exponent: 2, is_cross_border: true, tax_recalc: true, item_count: 1, risk_score: 0.1, authorized_amount: 40012345, settled_amount: 40000000, fx_auth: 4000.0, fx_settle: 4000.0}
+    expect:
+      rows:
+        - {transaction_id: partial, category: large,        likely_cause: partial_capture, direction: under, rounding_flag: false}
+        - {transaction_id: fraud,   category: large,        likely_cause: fraud_hold,      direction: under, rounding_flag: false}
+        - {transaction_id: tax,     category: fx_tolerance, likely_cause: tax_recalc,      direction: over,  rounding_flag: false}
+        - {transaction_id: step,    category: fx_tolerance, likely_cause: psp_rounding,    direction: under, rounding_flag: true}

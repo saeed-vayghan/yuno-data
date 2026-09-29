@@ -1,0 +1,29 @@
+version: 2
+
+# Raw CSVs from `recon generate` (schema: contracts/transactions.yaml). `recon build` sets
+# CASARECON_RAW_DIR to an absolute path. formatter=template: only $-placeholders are expanded,
+# so the read_csv column dict braces stay literal.
+sources:
+  - name: raw
+    tables:
+      - name: transactions
+        meta:
+          formatter: template
+          external_location: >-
+            read_csv('{{ env_var("CASARECON_RAW_DIR", "../data/raw") }}/transactions.csv', header=true,
+              columns={'transaction_id': 'VARCHAR', 'customer_id': 'VARCHAR', 'product_category': 'VARCHAR',
+                       'country': 'VARCHAR', 'currency': 'VARCHAR', 'payer_currency': 'VARCHAR',
+                       'is_cross_border': 'BOOLEAN', 'psp': 'VARCHAR', 'status': 'VARCHAR',
+                       'auth_ts': 'TIMESTAMP', 'settle_ts': 'TIMESTAMP', 'authorized_amount': 'BIGINT',
+                       'settled_amount': 'BIGINT', 'item_count': 'INTEGER', 'risk_score': 'DOUBLE',
+                       'card_bin_country': 'VARCHAR'})
+        columns:
+          - name: transaction_id
+            data_tests: [unique, not_null]
+
+      - name: fx_rates_daily
+        meta:
+          formatter: template
+          external_location: >-
+            read_csv('{{ env_var("CASARECON_RAW_DIR", "../data/raw") }}/fx_rates_daily.csv', header=true,
+              columns={'rate_date': 'DATE', 'currency': 'VARCHAR', 'local_per_usd': 'DOUBLE'})

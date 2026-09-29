@@ -1,0 +1,17 @@
+# Hand-off requests
+
+Append a dated line under the owner of the file you need changed. The owner ticks it when done.
+
+## INFRA
+- [ ] 2026-09-29 FRONTEND (Mani): please expose `fixture_db` in `tests/conftest.py` as a DuckDB **path** usable via `CASARECON_DB` (the dashboard AppTest sets the env var, it cannot pass `store=`), so `tests/dashboard` can add a real-data Overview/Outliers smoke test.
+- [ ] 2026-09-29 Kaveh (generate): `pyproject.toml` - add `pyarrow` as a direct dependency; `generate/writer.py` writes `data/truth/labels.parquet` via `DataFrame.to_parquet` and pyarrow only arrives transitively through streamlit today.
+- [ ] 2026-09-29 Kaveh (BACKEND-B ui_q/alerts): `OWNERSHIP.md` - add `src/casarecon/core/queries/ui_q_*.py` (BACKEND). `ui_q.py` re-exports helper modules `ui_q_overview` (#13-15), `ui_q_outliers` (#17-19), `ui_q_drill` (#16, 20, 21), `ui_q_base` (table name, AGG SQL, as_of / closed-week rules), `ui_q_alerts` (`alert_frame`, not a contract row). Please add one line to `core/queries/README.md` saying so.
+- [ ] 2026-09-29 Kaveh (BACKEND-B): `pipeline_q.status()` - use the same week rule as ui_q so Overview banner, KPIs and alerts agree: `as_of = max(greatest(auth_ts, coalesce(settle_ts, auth_ts)))` on the fct; closed week = Sunday <= as_of - 7 d. You can call `ui_q_base.as_of(store)` / `last_closed_week(as_of)` / `full_months(min, max)` (pure, tested). Full run gives as_of 2026-06-30 23:58, last closed 2026-W25.
+- [ ] 2026-09-29 Kaveh (BACKEND-B): `config/alerts.yaml` `pending_aging` - on the full run it fires in 20/20 PSP x country segments (oldest pending 9.8-14.6 d; a max over 90-600 pending rows is always > 7 d). Suggest `warn_days: 14, crit_days: 21`, or I can switch the metric to "share of pending older than warn_days" if you prefer. Other full-run results match file 08: peer PSP_B|AR (ONGOING), change PSP_C|AR, settle_lag CO|200+; smoke run = all INSUFFICIENT_DATA; two runs give the same shasum.
+- [ ] 2026-09-29 Kaveh (BACKEND-B): ui_q reads these `marts.fct_transaction_discrepancy` columns - keep them: status, auth_ts, settle_ts, customer_id, auth_date, auth_week, week_start, auth_weekday, amount_tier, category, likely_cause, residual_usd, abs_residual_usd, settled_usd, amount_usd, settle_lag_days + TXN_COLUMNS + detail extras (fx_auth, fx_settle, fx_move_pct, item_count, risk_score, is_weekend, is_lag_outlier, rounding_flag).
+
+## BACKEND
+- [ ] 2026-09-29 Kaveh (BACKEND-B -> BACKEND-A): `reports_q.load_alerts` - `reports/alerts.jsonl` rows have exactly `alerts.record.FIELDS` in order: period, rule_id, segment, key, psp, country, severity, status, owner, n, value, threshold, message (psp/country null when not in the segment). `alerts/stats.py` has stdlib `bh`, `wilson`, `two_prop_p`; dedupe with `analysis` stats later if you like. Alerts write files via their own `alerts/sink.py` (not `adapters/files.py`).
+
+## FRONTEND
+- [ ] 2026-09-29 Kaveh (BACKEND-B): ui_q rows 13-21 are all implemented (import `casarecon.core.queries.ui_q`, all take `store=`). Notes: `kpis()` also returns `week` (the resolved ISO week); `flag_rate` is 0.0 when n = 0; `weekly_trend.week_start` and `transaction_detail['auth_date']` are `datetime.date`; `week_over_week` has `rate_prev`/`delta_pts` NaN when a segment had no rows in W-1 (sorted last); `filter_options()` lists only values present in the data, in canonical order, `months` = full calendar months only; `outlier_summary(min_usd=None)` = no $ cut; bad `week` / `by` raise `BadFilter`.

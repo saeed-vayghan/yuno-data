@@ -1,0 +1,8 @@
+slack: {enabled: false}        # posts only if enabled AND env SLACK_WEBHOOK_URL is set
+rules:
+  - {id: peer,          severity: SEV2, owner: "PSP ops", window_weeks: 4, q_max: 0.05, min_gap_pts: 2}
+  - {id: change,        severity: SEV3, owner: "PSP ops", window_weeks: 8, sigma: 3}
+  - {id: money_leak,    severity_warn: SEV3, severity_crit: SEV2, owner: "Finance"}   # limits in thresholds.yaml
+  - {id: large_rows,    severity: SEV3, owner: "PSP ops", top_n: 3}
+  - {id: pending_aging, owner: "PSP ops + Finance", warn_days: 7, crit_days: 14}      # SEV3 / SEV2
+  - {id: settle_lag,    severity: SEV3, owner: "PSP ops", window_weeks: 4, late_days: 7, max_late_share: 0.06}

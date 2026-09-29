@@ -1,0 +1,18 @@
+[theme]
+base = "light"
+primaryColor = "#0072B2"          # Okabe-Ito blue: links, buttons, focus
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F3F5F7"
+textColor = "#1F2328"
+font = "sans serif"
+
+[server]
+address = "localhost"
+headless = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+showErrorDetails = false          # friendly messages; details go to the terminal log

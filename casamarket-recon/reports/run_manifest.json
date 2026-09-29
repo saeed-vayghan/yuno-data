@@ -1,0 +1,18 @@
+{
+  "built_at": "2026-09-29T15:23:25+00:00",
+  "row_counts": {
+    "intermediate.int_transactions_usd": 135000,
+    "marts.fct_transaction_discrepancy": 135000,
+    "marts.mart_psp_weekly": 280,
+    "ref.currency_exponents": 5,
+    "ref.psp_fees": 5,
+    "ref.vat_rates": 4,
+    "staging.stg_fx_rates": 424,
+    "staging.stg_transactions": 135000
+  },
+  "versions": {
+    "dbt-core": "1.12.5",
+    "dbt-duckdb": "1.11.0",
+    "duckdb": "1.4.5"
+  }
+}

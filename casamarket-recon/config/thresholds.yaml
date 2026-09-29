@@ -1,0 +1,16 @@
+# categories (first match wins, see file 04). All cut-offs on ABSOLUTE residual.
+rounding_minor_units: 1        # |diff_local| <= 1 minor unit → rounding
+fx_tolerance_pct: 2            # |residual_pct| <= 2 and |residual_usd| < large_usd → fx_tolerance
+large_pct: 5                   # |residual_pct| > 5 → large
+large_usd: 20                  # |residual_usd| >= 20 → large   (brief: "$20 is not" noise)
+lag_outlier_days: 7            # settle_lag_days > 7 → is_lag_outlier
+sensitivity_pcts: [1, 2, 3]
+causes:
+  rounding_step_major: 1000    # settled is a multiple of 1,000 MAJOR units (no PSP name here)
+  fee_min_usd: 1
+  fee_min_repeats: 20          # same residual repeated >= 20 times in one PSP × currency
+  high_risk_score: 0.8
+  partial_tolerance_pct: 0.5   # settled within 0.5% of expected × (n-1)/n
+money_leak: {warn_pct: 1.5, crit_pct: 2.5, weekly_usd: 9800}   # tune after the first full run
+min_sample: {alerts: 50, worst_week: 30}
+full_run_min_rows: 10000       # below this, validate pattern checks only warn

@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.pytest_cache/
+data/raw/
+data/truth/
+data/*.duckdb
+data/*.duckdb.wal
+data/.dbt/
+dbt/target/
+dbt/logs/
+.env

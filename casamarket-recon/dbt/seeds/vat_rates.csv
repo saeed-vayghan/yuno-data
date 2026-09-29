@@ -1,0 +1,5 @@
+country,vat_pct,tax_recalc
+AR,21,false
+CL,19,false
+CO,19,true
+MX,16,true

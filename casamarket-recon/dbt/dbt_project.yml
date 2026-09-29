@@ -1,0 +1,22 @@
+name: casarecon
+version: "0.1.0"
+config-version: 2
+profile: casarecon
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target"]
+
+models:
+  casarecon:
+    +materialized: table
+    staging:      {+schema: staging}
+    intermediate: {+schema: intermediate}
+    marts:        {+schema: marts}
+
+seeds:
+  casarecon:
+    +schema: ref

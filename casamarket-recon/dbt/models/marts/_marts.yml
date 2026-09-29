@@ -1,0 +1,64 @@
+version: 2
+
+models:
+  - name: fct_transaction_discrepancy
+    description: One enriched row per transaction (FR1). Money columns are null unless settled.
+    config: {contract: {enforced: true}}
+    columns:
+      - {name: transaction_id, data_type: varchar, data_tests: [unique, not_null]}
+      - {name: customer_id, data_type: varchar}
+      - {name: product_category, data_type: varchar}
+      - {name: country, data_type: varchar}
+      - {name: currency, data_type: varchar}
+      - {name: payer_currency, data_type: varchar}
+      - {name: is_cross_border, data_type: boolean}
+      - {name: psp, data_type: varchar}
+      - {name: status, data_type: varchar}
+      - {name: auth_ts, data_type: timestamp}
+      - {name: settle_ts, data_type: timestamp}
+      - {name: authorized_amount, data_type: bigint}
+      - {name: settled_amount, data_type: bigint}
+      - {name: item_count, data_type: integer}
+      - {name: risk_score, data_type: double}
+      - {name: card_bin_country, data_type: varchar}
+      - {name: exponent, data_type: integer}
+      - {name: tax_recalc, data_type: boolean}
+      - {name: contract_fee_usd, data_type: double}
+      - {name: fx_auth, data_type: double}
+      - {name: fx_settle, data_type: double}
+      - {name: amount_usd, data_type: double}
+      - {name: fx_move_pct, data_type: double}
+      - {name: settle_lag_days, data_type: double}
+      - {name: auth_date, data_type: date}
+      - {name: auth_weekday, data_type: varchar}
+      - {name: is_weekend, data_type: boolean}
+      - {name: auth_week, data_type: varchar}
+      - {name: week_start, data_type: date}
+      - {name: week_end, data_type: date}
+      - {name: auth_month, data_type: varchar}
+      - {name: week_month, data_type: varchar}
+      - {name: amount_tier, data_type: varchar}
+      - {name: is_over_300, data_type: boolean}
+      - {name: lag_bucket, data_type: varchar}
+      - {name: expected_settled, data_type: bigint}
+      - {name: diff_local, data_type: bigint}
+      - {name: residual, data_type: bigint}
+      - {name: residual_pct, data_type: double}
+      - {name: residual_usd, data_type: double}
+      - {name: settled_usd, data_type: double}
+      - {name: is_lag_outlier, data_type: boolean}
+      - {name: abs_residual_usd, data_type: double}
+      - {name: category, data_type: varchar, data_tests: [{accepted_values: {arguments: {values: [exact, rounding, fx_tolerance, meaningful, large]}}}]}
+      - {name: is_meaningful, data_type: boolean, data_tests: [not_null]}
+      - {name: direction, data_type: varchar, data_tests: [{accepted_values: {arguments: {values: [under, over, none]}}}]}
+      - {name: rounding_flag, data_type: boolean}
+      - {name: fee_repeats, data_type: bigint}
+      - {name: why_flagged, data_type: varchar}
+      - {name: likely_cause, data_type: varchar, data_tests: [{accepted_values: {arguments: {values: [fx_timing, psp_rounding, partial_capture, psp_fee, tax_recalc, fraud_hold, psp_adjustment, tip, unexplained]}}}]}
+
+  - name: mart_psp_weekly
+    description: PSP x country x ISO week (auth date) on settled rows; week_month = month of the Thursday.
+    columns:
+      - {name: psp_week_key, data_tests: [unique, not_null]}
+      - {name: n, data_tests: [not_null]}
+      - {name: low_sample, data_tests: [not_null]}

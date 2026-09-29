@@ -1,0 +1,10 @@
+.venv
+data/raw
+data/truth
+data/*.duckdb*
+data/.dbt
+dbt/target
+dbt/logs
+.git
+**/__pycache__
+.pytest_cache

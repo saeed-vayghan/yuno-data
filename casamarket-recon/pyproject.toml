@@ -1,0 +1,40 @@
+[project]
+name = "casarecon"
+version = "0.1.0"
+description = "CasaMarket settlement-discrepancy reconciliation: pipeline, analysis, alerts, CLI and dashboard"
+readme = "README.md"
+authors = [
+    { name = "Saeed", email = "saeed.uni68@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "dbt-core>=1.12,<1.13",
+    "dbt-duckdb>=1.11,<1.12",
+    "duckdb>=1.4,<1.5",
+    "jinja2>=3.1.6",
+    "kaleido>=1.4.0",
+    "numpy>=2.5.3",
+    "pandas>=3.0.6",
+    "plotly>=7.1.0",
+    "pydantic>=2.13.5",
+    "pyyaml>=6.0.3",
+    "scipy>=1.18.1",
+    "statsmodels>=0.15.0",
+    "streamlit>=1.40",
+    "typer>=0.27",
+]
+
+[project.scripts]
+recon = "casarecon.cli:app"
+
+[build-system]
+requires = ["uv_build>=0.9.13,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

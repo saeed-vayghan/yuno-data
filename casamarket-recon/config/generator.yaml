@@ -1,0 +1,33 @@
+seed: 42
+rows: 135000
+start: 2026-04-01
+months: 3                              # 3 full calendar months; window end = 2026-06-30 23:59:59
+countries: {MX: 0.40, CO: 0.25, AR: 0.20, CL: 0.15}
+currency: {MX: MXN, CO: COP, AR: ARS, CL: CLP}
+psps: {PSP_A: 0.30, PSP_B: 0.25, PSP_C: 0.20, PSP_D: 0.15, PSP_E: 0.10}
+status: {settled: 0.93, failed: 0.04, pending: 0.03}
+cross_border_share: 0.20
+tiers_usd: {"10-50": 0.45, "50-200": 0.40, "200+": 0.15}   # ~40% of 200+ above $300 → ~6% over $300
+item_count: {1: 0.55, 2: 0.25, 3: 0.12, 4: 0.08}           # max 4 (see pitfalls)
+lag_days: {min: 1, max: 7, mode: 2, outlier_share: 0.02, outlier_range: [8, 15]}
+fx_base: {MXN: 18.0, COP: 4000.0, ARS: 1000.0, CLP: 950.0}
+buckets: {exact: 0.67, rounding: 0.01, fx_tolerance: 0.18, meaningful: 0.10, large: 0.04}
+patterns:
+  P1: {psp: PSP_B, country: AR, meaningful_boost_pts: 3.5}
+  P2: {country: CO, min_usd: 300, extra_lag_days: [2, 4], outlier_share: 0.10}
+  P3: {weekend_meaningful_ratio: 1.3}                       # applied to meaningful and large weights
+  P4: {psp: PSP_D, currencies: [CLP, COP], cross_border_only: true, step_major: 1000}
+  X3: {psp: PSP_C, fee_local: {MXN: 3000, COP: 600000, ARS: 150000, CLP: 1400}, months: [3], meaningful_boost_pts: 4}  # ≈ $1.5, minor units; boost = drift
+  X4: {countries: [MX, CO], pct_range: [0.2, 1.9], domestic_only: true, both_signs: true}
+  X5: {min_risk: 0.8, withheld_pct: [10, 20], single_item_only: true, large_weight: 8}
+  X6: {pct_range: [2, 5]}
+tips: none
+# base-row details (generate/rows.py)
+amount_usd: {max: 3000, over_200_scale: 0.443}          # 200+ tier: 200·exp(Exp(scale)) → P(>300) ≈ 0.40
+lag_cap_days: 15                                         # P2 extra lag never pushes a settle past 15 days
+risk_beta: [1.0, 2.2]                                    # P(risk ≥ 0.8) ≈ 2.9%
+customers_per_row: 0.35                                  # repeat customers: token pool = rows × 0.35
+product_category: {furniture: 0.25, kitchen: 0.25, decor: 0.20, bedding: 0.15, lighting: 0.15}
+foreign_bin: {US: 0.60, CA: 0.10, ES: 0.10, GB: 0.10, BR: 0.10}   # card_bin_country of cross-border payers
+fx_max_daily_step: 0.0013                                # 15 steps · 0.13% → any 15-day move < 2%
+fx_drift_daily: {ARS: 0.0005}                            # crawling peg; clipped to the max step

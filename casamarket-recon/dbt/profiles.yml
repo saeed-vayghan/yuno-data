@@ -1,0 +1,7 @@
+casarecon:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: "{{ env_var('CASARECON_BUILD_PATH', '../data/casarecon.duckdb') }}"
+      threads: 4

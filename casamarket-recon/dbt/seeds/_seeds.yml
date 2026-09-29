@@ -1,0 +1,31 @@
+version: 2
+
+seeds:
+  - name: currency_exponents
+    description: Minor-unit exponent per currency (CLP 0, others 2).
+    config: {column_types: {currency: varchar, exponent: integer}}
+    columns:
+      - name: currency
+        data_tests: [unique, not_null]
+      - name: exponent
+        data_tests:
+          - not_null
+          - accepted_values: {arguments: {values: [0, 2], quote: false}}
+
+  - name: psp_fees
+    description: Contracted per-transaction fee in USD (0 for every PSP; a fee in the data is unexpected).
+    config: {column_types: {psp: varchar, contract_fee_usd: double}}
+    columns:
+      - name: psp
+        data_tests: [unique, not_null]
+      - name: contract_fee_usd
+        data_tests: [not_null]
+
+  - name: vat_rates
+    description: VAT by country; tax_recalc = PSP may recalculate tax on domestic settlement (MX, CO).
+    config: {column_types: {country: varchar, vat_pct: double, tax_recalc: boolean}}
+    columns:
+      - name: country
+        data_tests: [unique, not_null]
+      - name: tax_recalc
+        data_tests: [not_null]
