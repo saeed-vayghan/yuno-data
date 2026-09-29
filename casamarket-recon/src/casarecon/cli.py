@@ -134,3 +134,17 @@ def all_(rows: ROWS = None, seed: SEED = None) -> None:
         kwargs = {"rows": rows, "seed": seed} if name == "generate" else {}
         globals()[name](**kwargs)
         logger.info(log.kv(step=name, secs=round(time.perf_counter() - start, 1)))
+
+
+# Sub-command groups owned by other packages (M4). Each module exposes a Typer `app`.
+# A missing module is skipped, so a group appears only once its package is built.
+PLUGINS = {
+    "ingest": "casarecon.ingest.cli:app",   # recon ingest ...  (landing, quarantine, lake zones, DQ)
+    "alert": "casarecon.alerts.cli:app",    # recon alert ...   (history, ack, mute, notify)
+    "ops": "casarecon.ops.cli:app",         # recon ops ...     (backfill/replay, lineage, platform)
+}
+for _name, _target in PLUGINS.items():
+    try:
+        app.add_typer(_entry(_target), name=_name)
+    except ModuleNotFoundError:
+        pass
