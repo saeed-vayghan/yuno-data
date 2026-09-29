@@ -40,7 +40,8 @@ def db_version(*, store: Store | None = None) -> float:
 
 def status(*, store: Store | None = None) -> dict:
     """#3 keys: as_of: datetime, last_closed_week: str, last_closed_start: date,
-    last_closed_end: date, open_weeks: list[str], last_full_month: str, months: list[str], n_rows: int."""
+    last_closed_end: date, open_weeks: list[str], last_full_month: str, months: list[str], n_rows: int,
+    provisional_weeks: list[str] (weeks inside the restatement window, from mart_psp_weekly)."""
     s = store or get_store()
     row = s.query(f"""
         select max(greatest(auth_ts, coalesce(settle_ts, auth_ts))) as as_of,
@@ -61,19 +62,31 @@ def status(*, store: Store | None = None) -> dict:
         "last_full_month": weeks.last_full_month(as_of, row["first_day"]),
         "months": list(row["months"]),
         "n_rows": int(row["n_rows"]),
+        "provisional_weeks": _provisional_weeks(s),
     }
+
+
+def _provisional_weeks(s: Store) -> list[str]:
+    """Weeks flagged is_provisional in the weekly mart; [] on a DB without it (minimal test DBs)."""
+    has = s.query("""select count(*) as n from information_schema.columns where table_schema = 'marts'
+        and table_name = 'mart_psp_weekly' and column_name = 'is_provisional'""")["n"].iloc[0]
+    if not has:
+        return []
+    return s.query(f"select distinct auth_week from {PSP_WEEKLY} where is_provisional"
+                   " order by auth_week")["auth_week"].tolist()
 
 
 def psp_weekly(filters: Filters | None = None, *, store: Store | None = None) -> pd.DataFrame:
     """#4 cols: psp, country, auth_week, week_start, week_end, week_month, n, n_flagged, rate,
-    n_large, gross_under_usd, gross_over_usd, net_usd, low_sample."""
+    n_large, gross_under_usd, gross_over_usd, net_usd, low_sample, is_provisional, merchant_id
+    (one row per merchant; one merchant today)."""
     f = filters or Filters()
     where, params = Filters(psp=f.psp, country=f.country, week=f.week).where_sql()
     return (store or get_store()).query(f"""
         select psp, country, auth_week, week_start, week_end, week_month, n, n_flagged, rate,
-               n_large, gross_under_usd, gross_over_usd, net_usd, low_sample
+               n_large, gross_under_usd, gross_over_usd, net_usd, low_sample, is_provisional, merchant_id
         from {PSP_WEEKLY} where true{where}
-        order by psp, country, auth_week""", params)
+        order by psp, country, auth_week, merchant_id""", params)
 
 
 def worst_week(month: str = "last", *, store: Store | None = None) -> pd.DataFrame:

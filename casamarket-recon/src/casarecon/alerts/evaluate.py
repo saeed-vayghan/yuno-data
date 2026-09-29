@@ -4,7 +4,14 @@ from collections.abc import Callable
 
 from casarecon.alerts.group import group_peers
 from casarecon.alerts.record import (
-    FIELDS, FIRING, INSUFFICIENT, NEW, ONGOING, RESOLVED, SEVERITY_ORDER, RuleInput,
+    FIRING,
+    INSUFFICIENT,
+    NEW,
+    ONGOING,
+    RESOLVED,
+    RULE_FIELDS,
+    SEVERITY_ORDER,
+    RuleInput,
 )
 from casarecon.alerts.rules_money import large_rows, money_leak, pending_aging
 from casarecon.alerts.rules_rate import change, peer, settle_lag
@@ -40,7 +47,7 @@ def with_status(now: list[dict], before: list[dict], week: str) -> list[dict]:
 def sort_alerts(rows: list[dict]) -> list[dict]:
     ordered = sorted(rows, key=lambda r: (SEVERITY_ORDER.get(r["severity"], 9), r["rule_id"],
                                           r["segment"]))
-    return [{f: r[f] for f in FIELDS} for r in ordered]
+    return [{f: r[f] for f in RULE_FIELDS} for r in ordered]
 
 
 def run_rule(data: RuleInput, cfg: dict, week: str) -> list[dict]:

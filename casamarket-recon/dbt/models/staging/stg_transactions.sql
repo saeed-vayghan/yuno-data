@@ -1,6 +1,7 @@
 -- One row per raw transaction (all statuses). Trim + cast only; no business logic.
 select
     trim(transaction_id)                  as transaction_id,
+    coalesce(nullif(trim(merchant_id), ''), 'casamarket') as merchant_id,  -- contract default
     trim(customer_id)                     as customer_id,
     trim(product_category)                as product_category,
     upper(trim(country))                  as country,

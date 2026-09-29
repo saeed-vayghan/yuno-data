@@ -1,8 +1,8 @@
 cause,n_pred,n_true,tp,precision,recall
-fraud_hold,884,884,884,1.0,1.0
-fx_timing,19527,19671,19527,1.0,0.99268
-partial_capture,3909,3909,3909,1.0,1.0
-psp_adjustment,12260,12260,12260,1.0,1.0
-psp_fee,941,941,941,1.0,1.0
-psp_rounding,2900,2756,2756,0.950345,1.0
-tax_recalc,554,554,554,1.0,1.0
+fraud_hold,811,811,811,1.0,1.0
+fx_timing,19473,19622,19473,1.0,0.992406
+partial_capture,4113,4113,4113,1.0,1.0
+psp_adjustment,12102,12102,12102,1.0,1.0
+psp_fee,987,987,987,1.0,1.0
+psp_rounding,2905,2756,2756,0.948709,1.0
+tax_recalc,595,595,595,1.0,1.0

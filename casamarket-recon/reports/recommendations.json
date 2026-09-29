@@ -7,46 +7,46 @@
     "owner": "Ops",
     "rank": 1,
     "reduction_pct": 30,
-    "usd_quarter": 17662.56
+    "usd_quarter": 9989.29
   },
   {
     "action": "Dispute the new PSP_C per-transaction fee",
-    "evidence": "F7, F8",
+    "evidence": "F4, F5",
     "implementation": "Compare with contract (`psp_fees` = 0); claim back since the drift started",
     "method": "excess loss × 70%",
     "owner": "Finance",
     "rank": 2,
     "reduction_pct": 70,
-    "usd_quarter": 1015.11
+    "usd_quarter": 1066.75
   },
   {
     "action": "Escalate PSP_B AR variance; renegotiate settlement terms",
-    "evidence": "F5",
+    "evidence": "F6",
     "implementation": "Weekly variance report to PSP_B; SLA clause with credit on excess",
     "method": "excess loss × 50%",
     "owner": "Payments ops",
     "rank": 3,
     "reduction_pct": 50,
-    "usd_quarter": 943.27
+    "usd_quarter": 576.92
   },
   {
     "action": "Escalate PSP_C MX variance; renegotiate settlement terms",
-    "evidence": "F6",
+    "evidence": "F8",
     "implementation": "Weekly variance report to PSP_C; SLA clause with credit on excess",
     "method": "excess loss × 50%",
     "owner": "Payments ops",
     "rank": 4,
     "reduction_pct": 50,
-    "usd_quarter": 728.54
+    "usd_quarter": 394.3
   },
   {
-    "action": "Settlement SLA for CO orders over $300",
+    "action": "Escalate PSP_B settlement adjustments",
     "evidence": "F9",
-    "implementation": "Track lag p90; escalate > 7 days",
+    "implementation": "Ask PSP_B for reason codes on every adjustment; dispute the unexplained ones",
     "method": "excess loss × 50%",
-    "owner": "PSP ops",
+    "owner": "Payments ops",
     "rank": 5,
     "reduction_pct": 50,
-    "usd_quarter": 629.04
+    "usd_quarter": 361.9
   }
 ]

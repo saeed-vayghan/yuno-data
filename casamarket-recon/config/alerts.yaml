@@ -1,4 +1,8 @@
-slack: {enabled: false}        # posts only if enabled AND env SLACK_WEBHOOK_URL is set
+# Routing (local dev): SEV2 / SEV3 alerts go to the local outbox reports/notifications.jsonl after
+# mute + dedupe (dedupe key = alert key + period; ONGOING is not re-sent; RESOLVED sends a resolve).
+# INFO is never sent. Slack is the one optional channel for the severities listed here: it posts
+# only if enabled AND env SLACK_WEBHOOK_URL is set. Ack / mute: config/alert_state.yaml.
+slack: {enabled: false, severities: [SEV2, SEV3]}
 rules:
   - {id: peer,          severity: SEV2, owner: "PSP ops", window_weeks: 4, q_max: 0.05, min_gap_pts: 2, group_min_countries: 3}
   - {id: change,        severity: SEV3, owner: "PSP ops", window_weeks: 8, sigma: 3}

@@ -1,0 +1,24 @@
+# `recon ingest` (src/casarecon/ingest): per-PSP file formats and data-quality limits.
+# Lake root = env CASARECON_LAKE_DIR, else <CASARECON_RAW_DIR>/../lake (= data/lake by default).
+formats:                         # 2 formats; each PSP delivers one of them
+  standard:                      # contract column names, ISO timestamps, comma separated
+    delimiter: ","
+    ts_format: "%Y-%m-%d %H:%M:%S"
+    rename: {}
+  legacy:                        # own column names, day-first timestamps, semicolon separated
+    delimiter: ";"
+    ts_format: "%d/%m/%Y %H:%M:%S"
+    rename:                      # contract name -> name in the PSP file
+      transaction_id: txn_ref
+      customer_id: customer_token
+      is_cross_border: cross_border
+      auth_ts: authorised_at
+      settle_ts: settled_at
+      authorized_amount: amount_auth_minor
+      settled_amount: amount_settled_minor
+psps: {PSP_A: standard, PSP_B: standard, PSP_C: standard, PSP_D: legacy, PSP_E: legacy}
+dq:
+  freshness_max_days: 1          # latest file of a PSP older than as_of - N days -> FAIL (exit 5)
+  volume_window_days: 7          # settled rows per PSP-day vs the median of the previous N days
+  volume_warmup_days: 15         # first N days of a PSP are not checked (= max settle lag: flow still ramping up)
+  volume_tolerance: 0.5          # |rows / median - 1| > 50% -> WARN

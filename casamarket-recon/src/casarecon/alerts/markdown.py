@@ -42,9 +42,12 @@ def render(alerts: list[dict], *, week: str, prev: str, as_of: str, frame: pd.Da
            f"**Open SEV2:** {counts['SEV2']} · **Open SEV3:** {counts['SEV3']} · "
            f"**Insufficient data:** {len(thin)}", "", "## Alerts", ""]
     if live:
-        out += ["| Severity | Status | Rule | Segment | Owner | Message |", "|---|---|---|---|---|---|"]
-        out += ["| " + " | ".join(_cell(a[k]) for k in ("severity", "status", "rule_id", "segment",
-                                                        "owner", "message")) + " |" for a in live]
+        out += ["| Severity | Status | Open since | Rule | Segment | Owner | Message |",
+                "|---|---|---|---|---|---|---|"]
+        out += ["| " + " | ".join(_cell(v) for v in (
+            a["severity"], a["status"] + (" (muted)" if a.get("muted") else ""),
+            a.get("open_since") or "-", a["rule_id"], a["segment"], a["owner"], a["message"])) + " |"
+            for a in live]
     else:
         out.append("No alerts fired.")
     out += ["", "## Money", "", f"| | {prev} | {week} |", "|---|---|---|"]

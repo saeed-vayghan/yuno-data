@@ -43,11 +43,12 @@ def segment_rates(dim: SegmentDim, filters: Filters | None = None, *,
     if dim not in get_args(SegmentDim):
         raise BadFilter(f"unknown segment dim: {dim} (allowed: {', '.join(get_args(SegmentDim))})")
     s = store or get_store()
-    if filters is None:
+    seg = None
+    if filters is None:  # the mart is per merchant; > 1 merchant -> aggregate the fct instead
         seg = s.query("select * from marts.mart_segment_rates where segment_type = ?"
                       " order by segment_value", [dim])
-    else:
-        where, params = filters.where_sql()
+    if seg is None or seg.segment_value.duplicated().any():
+        where, params = (filters or Filters()).where_sql()
         seg = s.query(f"""select ? as segment_type, {SEGMENT_SQL[dim]} as segment_value, {_AGG}
             from {FCT} where status = 'settled'{where} group by 2 order by 2""", [dim, *params])
     min_n = load_config().thresholds.min_sample.alerts

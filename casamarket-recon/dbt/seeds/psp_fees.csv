@@ -1,6 +1,7 @@
-psp,contract_fee_usd
-PSP_A,0
-PSP_B,0
-PSP_C,0
-PSP_D,0
-PSP_E,0
+psp,contract_fee_usd,valid_from,valid_to
+PSP_A,0,2025-01-01,
+PSP_B,0,2025-01-01,
+PSP_C,0,2025-01-01,2026-06-01
+PSP_C,1.5,2026-06-01,
+PSP_D,0,2025-01-01,
+PSP_E,0,2025-01-01,

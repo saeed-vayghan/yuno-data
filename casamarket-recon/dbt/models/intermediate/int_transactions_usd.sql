@@ -1,6 +1,12 @@
 -- All joins live here, so the fact model reads exactly one input (easy unit tests).
 -- Also the per-row calendar, tier and lag fields (merchant local time).
-with joined as (
+-- Reference seeds are dated: VAT and fee rows valid on the auth date. Incremental: only restated rows.
+{{ config(materialized='incremental', unique_key='transaction_id', incremental_strategy='delete+insert',
+          on_schema_change='fail') }}
+with src as (
+    select * from {{ ref('stg_transactions') }}
+    {% if is_incremental() %} where {{ restated_rows() }} {% endif %}
+), joined as (
     select
         t.*,
         e.exponent,
@@ -11,10 +17,10 @@ with joined as (
         t.authorized_amount / pow(10, e.exponent) / fa.local_per_usd   as amount_usd,
         (fs.local_per_usd / fa.local_per_usd - 1) * 100                as fx_move_pct,
         round(date_diff('second', t.auth_ts, t.settle_ts) / 86400.0, 2) as settle_lag_days
-    from {{ ref('stg_transactions') }} t
+    from src t
     join {{ ref('currency_exponents') }} e using (currency)
-    join {{ ref('vat_rates') }} v using (country)
-    join {{ ref('psp_fees') }} f using (psp)
+    join {{ ref('vat_rates') }} v on v.country = t.country and {{ valid_on('v', 't.auth_ts::date') }}
+    join {{ ref('psp_fees') }} f on f.psp = t.psp and {{ valid_on('f', 't.auth_ts::date') }}
     join {{ ref('stg_fx_rates') }} fa on fa.currency = t.currency and fa.rate_date = t.auth_ts::date
     left join {{ ref('stg_fx_rates') }} fs on fs.currency = t.currency and fs.rate_date = t.settle_ts::date
 )

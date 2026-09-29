@@ -1,7 +1,7 @@
 # M4: data architecture work (dev env)
 
-Goal: build the open data-architecture items **locally** (dev env). AWS parts are code only
-(Terraform / Airflow / Flink files that validate) — **never applied or deployed**.
+Goal: build the open data-architecture items for **local dev only**. No production or AWS work
+(no Terraform, Flink, Airflow, StarRocks, SNS/PagerDuty) — dropped by the user.
 
 Rules (same as before): functional style, small files (< 150 lines), adapters between layers,
 simple English, a short README per new folder, a **few** tests only. `make all` must stay green
@@ -13,8 +13,8 @@ and keep the default behaviour (full rebuild, same outputs) unless a flag is pas
 |---|---|---|
 | **DATA** (dbt + model) | 1 incremental loads, 2 late settlements / restatement window, 3 dated reference data (SCD2 fees, VAT, FX valid_from/to), 16 `merchant_id` through the data layer | `dbt/models/staging/*.sql`, `dbt/models/intermediate/**`, `dbt/models/marts/**`, `dbt/seeds/**`, `dbt/tests/**`, `dbt/macros/**`, `dbt_project.yml`, `src/casarecon/pipeline/**`, `core/weeks.py`, `core/queries/pipeline_q*.py`, `cli.py` (build command only) |
 | **INGEST** (landing + lake + DQ) | 7 per-PSP file landing, contract check on arrival, quarantine; 8 lake zones raw → staged (partitioned parquet, Iceberg-like layout); 13 freshness / volume / schema-drift checks; 6 calibration toward ~$127k; `merchant_id` at source | `src/casarecon/generate/**`, `config/generator.yaml`, `contracts/**`, `src/casarecon/ingest/**` (+ `ingest/cli.py` → `recon ingest`), `dbt/models/staging/_sources.yml`, `config/ingest.yaml`, `data/sample/**`, `tests/infra/test_ingest*.py`, `tests/infra/test_generate*.py` |
-| **ALERTS** (metrics + alert memory + delivery) | 4 alert history (open since, ack, mute), 5 one metric-definition module, 17 routing + dedupe (Slack / PagerDuty / SNS adapters, all off by default) | `src/casarecon/alerts/**` (+ `alerts/cli.py` → `recon alert`), `adapters/slack.py`, `adapters/notify_*.py`, `core/metrics.py`, `config/alerts.yaml`, `core/queries/ui_q*.py`, `core/queries/reports_q.py`, `tests/backend/test_alerts*.py` |
-| **PLATFORM** (AWS path as code) | 9 Flink SQL job (auth ↔ settlement match), 10 dbt-starrocks target, 11 Airflow DAG, 12 StarRocks compose profile, 14 lineage (dbt docs + OpenLineage), 15 security/PII policy, 18 replay/backfill, Terraform for the AWS diagram | `infra/**` (terraform, airflow, flink, starrocks), `dbt/profiles.yml`, `src/casarecon/ops/**` (+ `ops/cli.py` → `recon ops`), `docker-compose.yml`, `Dockerfile`, `docs/PLATFORM.md`, `tests/infra/test_ops*.py` |
+| **ALERTS** (metrics + alert memory + delivery) | 4 alert history (open since, ack, mute), 5 one metric-definition module, 17 local routing + dedupe (outbox `reports/notifications.jsonl`; Slack optional, off) | `src/casarecon/alerts/**` (+ `alerts/cli.py` → `recon alert`), `adapters/slack.py`, `core/metrics.py`, `config/alerts.yaml`, `core/queries/ui_q*.py`, `core/queries/reports_q.py`, `tests/backend/test_alerts*.py` |
+| **DEV-OPS** (local tooling) | 14 lineage (dbt docs → markdown), 15 PII scan, 18 replay/backfill, `make lake` / `make dev-check` | `dbt/profiles.yml`, `src/casarecon/ops/**` (+ `ops/cli.py` → `recon ops`), `docker-compose.yml`, `Dockerfile`, `docs/PLATFORM.md`, `tests/infra/test_ops*.py` |
 
 Shared: `README.md` and `docs/ARCH-M4.md` are updated by the coordinator at the end.
 

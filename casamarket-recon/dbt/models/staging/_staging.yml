@@ -8,6 +8,7 @@ models:
       - name: transaction_id
         data_type: varchar
         data_tests: [unique, not_null]
+      - {name: merchant_id, data_type: varchar, data_tests: [not_null]}
       - {name: customer_id, data_type: varchar, data_tests: [not_null]}
       - {name: product_category, data_type: varchar}
       - name: country

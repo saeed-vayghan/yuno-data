@@ -10,6 +10,9 @@ macro-paths: ["macros"]
 target-path: "target"
 clean-targets: ["target"]
 
+vars:
+  lookback_days: 15   # restatement window in days (= max settle lag); `recon build --lookback-days N`
+
 models:
   casarecon:
     +materialized: table

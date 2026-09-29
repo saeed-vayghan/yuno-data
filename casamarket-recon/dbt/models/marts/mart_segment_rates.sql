@@ -1,4 +1,4 @@
--- Flag rate + USD per segment, settled rows, one block per segment type (union all).
+-- Flag rate + USD per merchant x segment, settled rows, one block per segment type (union all).
 -- Booleans are labelled 'true'/'false'; pairs are 'PSP_B|AR', 'CO|200+'.
 -- Keep in sync with SEGMENT_SQL in core/queries/pipeline_q2.py (used when filters are applied).
 {% set segments = {
@@ -17,7 +17,7 @@ with settled as (
     {% endfor %}
 )
 select
-    segment_type, segment_value,
+    merchant_id, segment_type, segment_value,
     count(*)                                                             as n,
     count_if(is_meaningful)::bigint                                      as n_flagged,
     count_if(is_meaningful) / count(*)                                   as rate,
@@ -29,5 +29,5 @@ select
     round(coalesce(median(-residual_usd) filter (where is_meaningful), 0), 2) as median_loss_usd,
     segment_type || ':' || segment_value                                 as segment_key
 from segments
-group by segment_type, segment_value
-order by segment_key
+group by merchant_id, segment_type, segment_value
+order by merchant_id, segment_key

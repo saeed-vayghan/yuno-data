@@ -1,4 +1,5 @@
 seed: 42
+merchant_id: casamarket                 # contract column `merchant_id` (one merchant today)
 rows: 135000
 start: 2026-04-01
 months: 3                              # 3 full calendar months; window end = 2026-06-30 23:59:59
@@ -12,6 +13,7 @@ item_count: {1: 0.55, 2: 0.25, 3: 0.12, 4: 0.08}           # max 4 (see pitfalls
 lag_days: {min: 1, max: 7, mode: 2, outlier_share: 0.02, outlier_range: [8, 15]}
 fx_base: {MXN: 18.0, COP: 4000.0, ARS: 1000.0, CLP: 950.0}
 buckets: {exact: 0.67, rounding: 0.01, fx_tolerance: 0.18, meaningful: 0.10, large: 0.04}
+large_size_bias: 0.8                   # large-bucket pick weight ∝ usd^-0.8 (small orders more often): quarter net loss ≈ $129k vs the brief's ~$127k (0 = uniform → $234k)
 patterns:
   P1: {psp: PSP_B, country: AR, meaningful_boost_pts: 3.5}
   P2: {country: CO, min_usd: 300, extra_lag_days: [2, 4], outlier_share: 0.10}

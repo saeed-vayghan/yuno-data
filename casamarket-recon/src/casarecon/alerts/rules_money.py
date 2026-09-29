@@ -1,6 +1,7 @@
 """Money rules: money_leak, large_rows, pending_aging. Pure: (RuleInput, cfg, week) -> alert dicts."""
 
 from casarecon.alerts.record import RuleInput, insufficient, pct, record, seg_of, usd
+from casarecon.core.metrics import leak_share_pct
 
 
 def money_leak(data: RuleInput, cfg: dict, week: str) -> list[dict]:
@@ -10,7 +11,7 @@ def money_leak(data: RuleInput, cfg: dict, week: str) -> list[dict]:
     if n < data.min_n:
         return [insufficient(cfg, week, "ALL", n, data.min_n)]
     under, volume = float(cur["gross_under_usd"].sum()), float(cur["settled_usd"].sum())
-    leak = 100 * under / volume if volume else 0.0
+    leak = leak_share_pct(under, volume)
     warn, crit = data.money["warn_pct"], data.money["crit_pct"]
     if leak < warn:
         return []

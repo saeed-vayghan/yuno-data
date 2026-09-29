@@ -45,7 +45,15 @@ and `reports/alerts.md`. Limits live in `config/alerts.yaml` and `config/thresho
 - **Status** compares with the week before: NEW = fires now, not before · ONGOING = both ·
   RESOLVED = before, not now · INSUFFICIENT_DATA = fewer than 50 rows, never an alert.
 - The Overview "Open alerts" KPI counts SEV2 + SEV3 alerts that are NEW or ONGOING.
-- Slack posting is off by default (`slack.enabled: false`; also needs `SLACK_WEBHOOK_URL`).
+- **Open since:** first week of the current run of weeks the alert kept firing (from the alert
+  history in `data/alerts/history.jsonl`, one line per alert per week).
+- **Ack / mute** (`config/alert_state.yaml`): `uv run recon alert ack 'peer|PSP_B|AR' --note "JIRA-1"`
+  marks it seen; `uv run recon alert mute KEY --until 2026-W27` keeps recording it (`muted: true`) but
+  does not send it. `recon alert list` shows open alerts; `recon alert history KEY` shows its weeks.
+- **Notifications (local):** `reports/notifications.jsonl` lists what would be sent: SEV2 / SEV3 only,
+  not muted, NEW as `trigger`, ONGOING only if not sent before in its streak, RESOLVED as `resolve`
+  (dedupe key = alert key + week). Slack posting is off by default (`slack.enabled: false`; also
+  needs `SLACK_WEBHOOK_URL`).
 
 ### How to read it
 - **Discrepancy after FX:** settled minus expected settle, with the normal FX move removed, in USD

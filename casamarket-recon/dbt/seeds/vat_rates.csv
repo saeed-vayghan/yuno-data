@@ -1,5 +1,5 @@
-country,vat_pct,tax_recalc
-AR,21,false
-CL,19,false
-CO,19,true
-MX,16,true
+country,vat_pct,tax_recalc,valid_from,valid_to
+AR,21,false,2025-01-01,
+CL,19,false,2025-01-01,
+CO,19,true,2025-01-01,
+MX,16,true,2025-01-01,

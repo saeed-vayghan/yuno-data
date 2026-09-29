@@ -7,12 +7,13 @@ from casarecon.core.deps import get_files
 from casarecon.ports import ReportFiles
 
 ALERT_COLUMNS = ["period", "rule_id", "segment", "key", "severity", "status", "message", "owner",
-                 "psp", "country", "n", "value", "threshold"]
+                 "psp", "country", "n", "value", "threshold",
+                 "open_since", "muted"]  # M4 alert memory (additive; NaN in older files)
 
 
 def load_alerts(*, files: ReportFiles | None = None) -> pd.DataFrame | None:
     """#22 reports/alerts.jsonl -> cols: period, rule_id, segment, key, severity, status, message, owner,
-    psp, country, n, value, threshold. None if the file is missing."""
+    psp, country, n, value, threshold, open_since, muted. None if the file is missing."""
     rows = (files or get_files()).read_jsonl(paths.reports_dir() / "alerts.jsonl")
     return None if rows is None else pd.DataFrame(rows).reindex(columns=ALERT_COLUMNS)
 

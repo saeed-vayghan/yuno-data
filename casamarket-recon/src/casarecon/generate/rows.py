@@ -53,4 +53,5 @@ def base_rows(rng: np.random.Generator, g: dict, start: datetime, end: datetime)
         "amount_usd_drawn": amounts_usd(rng, g, n),
         "lag_days": lags_days(rng, g["lag_days"], n),
         "is_failed": rng.random(n) < g["status"]["failed"],
+        "merchant_id": g.get("merchant_id", "casamarket"),   # constant: no RNG call, bytes unchanged
     })

@@ -1,6 +1,8 @@
 {
   "build": {
-    "built_at": "2026-09-29T15:43:19+00:00",
+    "built_at": "2026-09-29T16:05:22+00:00",
+    "mode": "full",
+    "lookback_days": 15,
     "row_counts": {
       "intermediate.int_transactions_usd": 135000,
       "marts.fct_transaction_discrepancy": 135000,
@@ -9,7 +11,7 @@
       "marts.mart_psp_weekly": 280,
       "marts.mart_segment_rates": 64,
       "ref.currency_exponents": 5,
-      "ref.psp_fees": 5,
+      "ref.psp_fees": 6,
       "ref.vat_rates": 4,
       "staging.stg_fx_rates": 424,
       "staging.stg_transactions": 135000
@@ -123,7 +125,7 @@
       {
         "name": "small 0.1-2% (fx_tolerance) / settled",
         "target": "15%-20%",
-        "realized": 0.1782,
+        "realized": 0.1783,
         "low": 0.1467,
         "high": 0.2033,
         "status": "PASS"
@@ -147,7 +149,7 @@
       {
         "name": "match exactly (exact+rounding) / rows",
         "target": "60%-70%",
-        "realized": 0.6282,
+        "realized": 0.6281,
         "low": 0.5961,
         "high": 0.7039,
         "status": "PASS"
@@ -155,7 +157,7 @@
       {
         "name": "small 0.1-2% (fx_tolerance) / rows",
         "target": "15%-20%",
-        "realized": 0.1642,
+        "realized": 0.1643,
         "low": 0.147,
         "high": 0.203,
         "status": "PASS"
@@ -179,7 +181,7 @@
       {
         "name": "P1 PSP_B x AR flag-rate gap (pts)",
         "target": ">= 2.5",
-        "realized": 3.1052,
+        "realized": 2.9321,
         "low": 2.5,
         "high": Infinity,
         "status": "PASS"
@@ -195,7 +197,7 @@
       {
         "name": "P3 weekend / weekday flag rate",
         "target": ">= 1.2",
-        "realized": 1.2584,
+        "realized": 1.2384,
         "low": 1.2,
         "high": Infinity,
         "status": "PASS"

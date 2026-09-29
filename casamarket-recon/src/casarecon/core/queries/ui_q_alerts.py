@@ -6,6 +6,7 @@ rule window / peer group is a pandas groupby on this frame (alerts/ stays pure, 
 
 import pandas as pd
 
+from casarecon.core.metrics import FLAGGED_SQL, LARGE_SQL, OVER_SQL, SETTLED_SQL, UNDER_SQL
 from casarecon.core.queries.ui_q_base import AS_OF, FCT, store_of
 from casarecon.ports import Store
 
@@ -13,7 +14,7 @@ ALERT_FRAME_COLS = ["psp", "country", "amount_tier", "auth_week", "n", "n_flagge
                     "large_usd", "gross_under_usd", "gross_over_usd", "settled_usd", "n_open",
                     "n_open_old", "n_late"]
 
-_S = "status = 'settled'"
+_S = SETTLED_SQL
 _AGE = "date_diff('second', auth_ts, a.as_of) / 86400.0"  # days since auth, vs as_of
 
 
@@ -24,11 +25,11 @@ def alert_frame(late_days: float, pending_days: float = 7, *,
     return store_of(store).query(
         f"with a as ({AS_OF}) select psp, country, amount_tier, auth_week, "
         f"count(*) filter (where {_S}) as n, "
-        f"count(*) filter (where {_S} and category in ('meaningful', 'large')) as n_flagged, "
-        f"count(*) filter (where {_S} and category = 'large') as n_large, "
-        f"round(coalesce(sum(abs_residual_usd) filter (where category = 'large'), 0), 2) as large_usd, "
-        f"round(coalesce(sum(greatest(-residual_usd, 0)) filter (where {_S}), 0), 2) as gross_under_usd, "
-        f"round(coalesce(sum(greatest(residual_usd, 0)) filter (where {_S}), 0), 2) as gross_over_usd, "
+        f"count(*) filter (where {_S} and {FLAGGED_SQL}) as n_flagged, "
+        f"count(*) filter (where {_S} and {LARGE_SQL}) as n_large, "
+        f"round(coalesce(sum(abs_residual_usd) filter (where {LARGE_SQL}), 0), 2) as large_usd, "
+        f"round(coalesce(sum({UNDER_SQL}) filter (where {_S}), 0), 2) as gross_under_usd, "
+        f"round(coalesce(sum({OVER_SQL}) filter (where {_S}), 0), 2) as gross_over_usd, "
         f"round(coalesce(sum(settled_usd) filter (where {_S}), 0), 2) as settled_usd, "
         "count(*) filter (where status = 'pending') as n_open, "
         f"count(*) filter (where status = 'pending' and {_AGE} > ?) as n_open_old, "

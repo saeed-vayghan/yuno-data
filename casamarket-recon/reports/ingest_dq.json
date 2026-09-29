@@ -1,0 +1,136 @@
+{
+  "as_of": "2026-06-30",
+  "status": "PASS",
+  "files": 455,
+  "rows": 135000,
+  "checks": [
+    {
+      "check": "freshness",
+      "psp": "PSP_A",
+      "status": "PASS",
+      "value": 0,
+      "threshold": 1,
+      "detail": "latest 2026-06-30"
+    },
+    {
+      "check": "freshness",
+      "psp": "PSP_B",
+      "status": "PASS",
+      "value": 0,
+      "threshold": 1,
+      "detail": "latest 2026-06-30"
+    },
+    {
+      "check": "freshness",
+      "psp": "PSP_C",
+      "status": "PASS",
+      "value": 0,
+      "threshold": 1,
+      "detail": "latest 2026-06-30"
+    },
+    {
+      "check": "freshness",
+      "psp": "PSP_D",
+      "status": "PASS",
+      "value": 0,
+      "threshold": 1,
+      "detail": "latest 2026-06-30"
+    },
+    {
+      "check": "freshness",
+      "psp": "PSP_E",
+      "status": "PASS",
+      "value": 0,
+      "threshold": 1,
+      "detail": "latest 2026-06-30"
+    },
+    {
+      "check": "volume",
+      "psp": "PSP_A",
+      "status": "PASS",
+      "value": 0,
+      "threshold": "\u00b150%",
+      "detail": ""
+    },
+    {
+      "check": "volume",
+      "psp": "PSP_B",
+      "status": "PASS",
+      "value": 0,
+      "threshold": "\u00b150%",
+      "detail": ""
+    },
+    {
+      "check": "volume",
+      "psp": "PSP_C",
+      "status": "PASS",
+      "value": 0,
+      "threshold": "\u00b150%",
+      "detail": ""
+    },
+    {
+      "check": "volume",
+      "psp": "PSP_D",
+      "status": "PASS",
+      "value": 0,
+      "threshold": "\u00b150%",
+      "detail": ""
+    },
+    {
+      "check": "volume",
+      "psp": "PSP_E",
+      "status": "PASS",
+      "value": 0,
+      "threshold": "\u00b150%",
+      "detail": ""
+    },
+    {
+      "check": "schema_drift",
+      "psp": "PSP_A",
+      "status": "PASS",
+      "value": 0,
+      "threshold": 0,
+      "detail": ""
+    },
+    {
+      "check": "schema_drift",
+      "psp": "PSP_B",
+      "status": "PASS",
+      "value": 0,
+      "threshold": 0,
+      "detail": ""
+    },
+    {
+      "check": "schema_drift",
+      "psp": "PSP_C",
+      "status": "PASS",
+      "value": 0,
+      "threshold": 0,
+      "detail": ""
+    },
+    {
+      "check": "schema_drift",
+      "psp": "PSP_D",
+      "status": "PASS",
+      "value": 0,
+      "threshold": 0,
+      "detail": ""
+    },
+    {
+      "check": "schema_drift",
+      "psp": "PSP_E",
+      "status": "PASS",
+      "value": 0,
+      "threshold": 0,
+      "detail": ""
+    },
+    {
+      "check": "quarantine",
+      "psp": "*",
+      "status": "PASS",
+      "value": 0,
+      "threshold": 0,
+      "detail": ""
+    }
+  ]
+}

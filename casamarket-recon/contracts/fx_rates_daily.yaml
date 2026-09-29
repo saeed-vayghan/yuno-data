@@ -1,0 +1,7 @@
+# Daily FX feed contract (reference data, one row per day x currency). Checked by `recon ingest load`.
+columns:
+  rate_date:     {type: date, nullable: false, pii: none}
+  currency:      {type: str, nullable: false, enum: [MXN, COP, ARS, CLP], pii: none}
+  local_per_usd: {type: float, nullable: false, min: 0, unit: local currency per 1 USD, pii: none}
+banned_fields: []
+version: 1

@@ -4,11 +4,11 @@ _As of 2026-06-30T23:58:00 · ranked by estimated saving per quarter · evidence
 
 | Rank | Action | Evidence | Est. $ saving / quarter (method) | Owner | Implementation |
 |---|---|---|---|---|---|
-| R1 | Reconcile partial captures and holds to order changes | F1, F3 | $17,663 (excess loss × 30%) | Ops | Join order events; auto-close explained rows |
-| R2 | Dispute the new PSP_C per-transaction fee | F7, F8 | $1,015 (excess loss × 70%) | Finance | Compare with contract (`psp_fees` = 0); claim back since the drift started |
-| R3 | Escalate PSP_B AR variance; renegotiate settlement terms | F5 | $943 (excess loss × 50%) | Payments ops | Weekly variance report to PSP_B; SLA clause with credit on excess |
-| R4 | Escalate PSP_C MX variance; renegotiate settlement terms | F6 | $729 (excess loss × 50%) | Payments ops | Weekly variance report to PSP_C; SLA clause with credit on excess |
-| R5 | Settlement SLA for CO orders over $300 | F9 | $629 (excess loss × 50%) | PSP ops | Track lag p90; escalate > 7 days |
+| R1 | Reconcile partial captures and holds to order changes | F1, F3 | $9,989 (excess loss × 30%) | Ops | Join order events; auto-close explained rows |
+| R2 | Dispute the new PSP_C per-transaction fee | F4, F5 | $1,067 (excess loss × 70%) | Finance | Compare with contract (`psp_fees` = 0); claim back since the drift started |
+| R3 | Escalate PSP_B AR variance; renegotiate settlement terms | F6 | $577 (excess loss × 50%) | Payments ops | Weekly variance report to PSP_B; SLA clause with credit on excess |
+| R4 | Escalate PSP_C MX variance; renegotiate settlement terms | F8 | $394 (excess loss × 50%) | Payments ops | Weekly variance report to PSP_C; SLA clause with credit on excess |
+| R5 | Escalate PSP_B settlement adjustments | F9 | $362 (excess loss × 50%) | Payments ops | Ask PSP_B for reason codes on every adjustment; dispute the unexplained ones |
 
 - R1. Assumption: saving = excess loss × 30% (the share of the gap this action is expected to remove).
 - R2. Assumption: saving = excess loss × 70% (the share of the gap this action is expected to remove).

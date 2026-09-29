@@ -10,3 +10,5 @@ dbt/target/
 dbt/logs/
 .env
 data/.hash*
+data/lake/
+data/alerts/

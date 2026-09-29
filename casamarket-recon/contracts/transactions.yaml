@@ -16,4 +16,5 @@ columns:
   item_count:        {type: int, nullable: false, min: 1, pii: none}
   risk_score:        {type: float, nullable: false, min: 0, max: 1, pii: none}
   card_bin_country:  {type: str, nullable: false, format: ISO-2, pii: none}
+  merchant_id:       {type: str, nullable: false, default: casamarket, note: one merchant today; multi-tenant key, pii: none}
 banned_fields: [pan, card_number, cvv, email, name]

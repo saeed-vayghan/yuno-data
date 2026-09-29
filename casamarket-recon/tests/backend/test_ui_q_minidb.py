@@ -50,7 +50,10 @@ select *,
   residual_usd / 5 as residual_pct, 20.0 as fx_auth, 20.0 as fx_settle, 0.0 as fx_move_pct,
   100.0 as amount_usd, 100.0 + residual_usd as settled_usd, 1 as item_count, 0.1 as risk_score,
   false as rounding_flag
-from base
+from base;
+-- status() reads provisional weeks (M4 restatement window) from the weekly mart: none here.
+create table marts.mart_psp_weekly as
+select distinct auth_week, false as is_provisional from marts.fct_transaction_discrepancy;
 """
 
 

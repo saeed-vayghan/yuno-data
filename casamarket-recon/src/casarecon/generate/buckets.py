@@ -42,10 +42,12 @@ def weekend_weights(s: pd.DataFrame, g: dict) -> np.ndarray:
 
 
 def large_weights(s: pd.DataFrame, g: dict) -> np.ndarray:
-    """P3 × X5 weight: high-risk single-item orders are the likely fraud holds."""
+    """P3 × X5 × size weight: high-risk single-item orders are the likely fraud holds; with
+    `large_size_bias` b > 0 smaller orders are picked more (weight ∝ usd^-b), which sets the quarter $ loss."""
     x5 = g["patterns"]["X5"]
     risky = (s["risk_score"].to_numpy() >= x5["min_risk"]) & (s["item_count"].to_numpy() == 1)
-    return weekend_weights(s, g) * np.where(risky, x5["large_weight"], 1.0)
+    size = np.maximum(s["expected_usd"].to_numpy(), 1.0) ** -float(g.get("large_size_bias", 0.0))
+    return weekend_weights(s, g) * np.where(risky, x5["large_weight"], 1.0) * size
 
 
 def boosts(s: pd.DataFrame, g: dict) -> list[tuple[np.ndarray, float]]:

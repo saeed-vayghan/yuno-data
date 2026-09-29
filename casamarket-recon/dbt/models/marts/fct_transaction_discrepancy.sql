@@ -1,12 +1,29 @@
 -- FR1 output: one enriched row per transaction (all statuses; money fields null unless settled).
 -- expected = auth x fx_settle / fx_auth (cross-border) or auth (domestic); residual = settled - expected.
+-- Incremental: restated rows + every row sharing a (psp, currency, residual) key with one, so the
+-- fee_repeats window count stays equal to a full build.
+{{ config(materialized='incremental', unique_key='transaction_id', incremental_strategy='delete+insert',
+          on_schema_change='fail') }}
 {% set t = var('thresholds') %}
-with expected as (
+with {% if is_incremental() %}changed as (
+    select transaction_id, psp, currency, settled_amount - {{ expected_settled_sql() }} as residual
+    from {{ ref('int_transactions_usd') }} where {{ restated_rows() }}
+), keys as (
+    select psp, currency, residual from changed
+    union
+    select o.psp, o.currency, o.residual from {{ this }} o join changed c using (transaction_id)
+), scope as (
+    select transaction_id from changed
+    union
+    select o.transaction_id from {{ this }} o join keys k using (psp, currency, residual)
+), {% endif %}src as (
+    select * from {{ ref('int_transactions_usd') }}
+    {% if is_incremental() %} where transaction_id in (select transaction_id from scope) {% endif %}
+), expected as (
     select *,
-        case when is_cross_border then round(authorized_amount * fx_settle / fx_auth)::bigint  -- same op order as core.money
-             else authorized_amount end                                        as expected_settled,
+        {{ expected_settled_sql() }}                                           as expected_settled,
         ({{ t.causes.rounding_step_major }} * pow(10, exponent))::bigint       as rounding_step
-    from {{ ref('int_transactions_usd') }}
+    from src
 ), money as (
     select *,
         settled_amount - authorized_amount                                     as diff_local,

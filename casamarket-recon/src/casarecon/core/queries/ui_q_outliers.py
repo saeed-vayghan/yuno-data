@@ -3,6 +3,7 @@
 import pandas as pd
 
 from casarecon.core.filters import Filters
+from casarecon.core.metrics import OVER_SQL, UNDER_SQL
 from casarecon.core.privacy import mask_id
 from casarecon.core.queries.pipeline_q import TXN_COLUMNS
 from casarecon.core.queries.ui_q_base import FCT, SETTLED, store_of, where
@@ -23,8 +24,8 @@ def outlier_summary(filters: Filters | None = None, min_usd: float | None = 50, 
         cond, params = f"{cond} and abs_residual_usd > ?", [*params, float(min_usd)]
     row = store_of(store).query(
         f"select count(*) as n, "
-        f"round(coalesce(sum(greatest(-residual_usd, 0)), 0), 2) as gross_under_usd, "
-        f"round(coalesce(sum(greatest(residual_usd, 0)), 0), 2) as gross_over_usd "
+        f"round(coalesce(sum({UNDER_SQL}), 0), 2) as gross_under_usd, "
+        f"round(coalesce(sum({OVER_SQL}), 0), 2) as gross_over_usd "
         f"from {FCT} where {SETTLED}{cond}", params).iloc[0]
     return {"n": int(row["n"]), "gross_under_usd": float(row["gross_under_usd"]),
             "gross_over_usd": float(row["gross_over_usd"])}

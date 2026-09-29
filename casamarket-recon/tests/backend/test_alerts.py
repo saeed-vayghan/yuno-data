@@ -7,7 +7,7 @@ import pytest
 
 from casarecon.alerts import run
 from casarecon.alerts.evaluate import evaluate, with_status
-from casarecon.alerts.record import FIELDS, RuleInput, record, trailing
+from casarecon.alerts.record import FIELDS, RULE_FIELDS, RuleInput, record, trailing
 from casarecon.alerts.rules_money import large_rows, money_leak, pending_aging
 from casarecon.alerts.rules_rate import change, peer, settle_lag
 from casarecon.core.config import load_config
@@ -92,7 +92,7 @@ def test_status_new_ongoing_resolved_and_sorting():
 
     rows = peer_rows(40) + [row(n=1000, gross_under_usd=3000.0, n_large=1, large_usd=30.0)]
     out = evaluate(data(rows), list(CFG.values()), W, PREV)
-    assert all(tuple(a) == FIELDS for a in out)
+    assert all(tuple(a) == RULE_FIELDS for a in out)
     sev = [a["severity"] for a in out]
     assert sev == sorted(sev, key={"SEV2": 0, "SEV3": 1, "INFO": 2}.get)
     by_rule = {a["rule_id"]: a["status"] for a in out if a["severity"] != "INFO"}
@@ -106,6 +106,8 @@ def test_run_writes_deterministic_reports_slack_off(minidb, tmp_path):
     run.main(store=minidb, out_dir=tmp_path, notify=calls.append)
     assert hashlib.sha256((tmp_path / "alerts.jsonl").read_bytes()).hexdigest() == digest
     assert calls == []  # slack.enabled is false in config/alerts.yaml
+    assert all(tuple(a) == FIELDS and a["open_since"] is None and a["muted"] is False for a in first)
+    assert (tmp_path / "notifications.jsonl").read_text() == ""  # INFO rows are never sent
     # mini DB is tiny (like a smoke run): every line is INSUFFICIENT_DATA, period = last closed week
     assert {(a["status"], a["severity"], a["period"]) for a in first} == {("INSUFFICIENT_DATA", "INFO", W)}
     assert {a["rule_id"] for a in first} == set(CFG)
@@ -114,8 +116,10 @@ def test_run_writes_deterministic_reports_slack_off(minidb, tmp_path):
 
 
 @pytest.fixture(autouse=True)
-def _no_slack_env(monkeypatch):
+def _no_slack_env(monkeypatch, tmp_path):
     monkeypatch.delenv("SLACK_WEBHOOK_URL", raising=False)
+    monkeypatch.setenv("CASARECON_ALERT_HISTORY", str(tmp_path / "history.jsonl"))  # never data/alerts
+    monkeypatch.setenv("CASARECON_ALERT_STATE", str(tmp_path / "alert_state.yaml"))
 
 
 def test_peer_alerts_group_by_psp_and_keep_status():

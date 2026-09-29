@@ -1,0 +1,5 @@
+# Alert ack / mute by key. Written by `recon alert ack|mute`; safe to edit by hand.
+# ack:  KEY: {period: YYYY-Www, note: text}   (seen by the owner, this open streak)
+# mute: KEY: {until: YYYY-Www, note: text}    (recorded, not notified, while period <= until)
+ack: {}
+mute: {}

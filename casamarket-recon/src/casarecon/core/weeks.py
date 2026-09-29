@@ -11,6 +11,7 @@ from casarecon.core.errors import BadFilter
 
 MONTH_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
 CLOSE_DAYS = 7  # a week is closed once its Sunday is at least 7 days before as_of
+LOOKBACK_DAYS = 15  # restatement window = max settle lag (dbt var `lookback_days`)
 
 
 def iso_week(d: date) -> str:
@@ -29,6 +30,12 @@ def last_closed_end(as_of: datetime) -> date:
     """Latest Sunday <= as_of - 7 days: the end of the last closed week."""
     d = (as_of - timedelta(days=CLOSE_DAYS)).date()
     return d - timedelta(days=d.isoweekday() % 7)
+
+
+def provisional_from(as_of: datetime, lookback_days: int = LOOKBACK_DAYS) -> date:
+    """Weeks whose Sunday is on/after this day are provisional: a late settlement can still change
+    them (same rule as mart_psp_weekly.is_provisional). A closed week can still be provisional."""
+    return (as_of - timedelta(days=lookback_days)).date()
 
 
 def last_full_month(as_of: datetime, first_day: date) -> str | None:

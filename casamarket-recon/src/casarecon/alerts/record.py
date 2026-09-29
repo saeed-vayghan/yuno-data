@@ -9,8 +9,9 @@ from casarecon.core.queries.ui_q_base import prev_week
 FIRING = "FIRING"  # internal: evaluate.py turns it into NEW / ONGOING
 NEW, ONGOING, RESOLVED, INSUFFICIENT = "NEW", "ONGOING", "RESOLVED", "INSUFFICIENT_DATA"
 SEVERITY_ORDER = {"SEV2": 0, "SEV3": 1, "INFO": 2}
-FIELDS = ("period", "rule_id", "segment", "key", "psp", "country", "severity", "status", "owner",
-          "n", "value", "threshold", "message")
+RULE_FIELDS = ("period", "rule_id", "segment", "key", "psp", "country", "severity", "status",
+               "owner", "n", "value", "threshold", "message")  # what evaluate.py produces
+FIELDS = (*RULE_FIELDS, "open_since", "muted")  # + alert memory (memory.py); = alerts.jsonl order
 
 
 @dataclass(frozen=True)

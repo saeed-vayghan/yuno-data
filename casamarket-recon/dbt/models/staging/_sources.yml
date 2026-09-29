@@ -1,8 +1,8 @@
-version: 2
-
-# Raw CSVs from `recon generate` (schema: contracts/transactions.yaml). `recon build` sets
-# CASARECON_RAW_DIR to an absolute path. formatter=template: only $-placeholders are expanded,
-# so the read_csv column dict braces stay literal.
+# Raw inputs (schema: contracts/transactions.yaml). Two sources, picked by env CASARECON_SOURCE:
+#   csv  (default) -> data/raw/*.csv from `recon generate` (`recon build` sets CASARECON_RAW_DIR absolute)
+#   lake           -> staged parquet from `recon ingest load`: <lake>/staged/transactions/settle_month=*/part-*.parquet
+#                     and <lake>/staged/fx_rates_daily/*.parquet. <lake> = CASARECON_LAKE_DIR, else <raw>/../lake.
+# formatter=template: only $-placeholders are expanded, so the read_csv column dict braces stay literal.
 sources:
   - name: raw
     tables:
@@ -10,20 +10,31 @@ sources:
         meta:
           formatter: template
           external_location: >-
+            {% if env_var("CASARECON_SOURCE", "csv") == "lake" -%}
+            read_parquet('{{ env_var("CASARECON_LAKE_DIR", env_var("CASARECON_RAW_DIR", "../data/raw") ~ "/../lake") }}/staged/transactions/settle_month=*/part-*.parquet',
+              hive_partitioning=false)
+            {%- else -%}
             read_csv('{{ env_var("CASARECON_RAW_DIR", "../data/raw") }}/transactions.csv', header=true,
               columns={'transaction_id': 'VARCHAR', 'customer_id': 'VARCHAR', 'product_category': 'VARCHAR',
                        'country': 'VARCHAR', 'currency': 'VARCHAR', 'payer_currency': 'VARCHAR',
                        'is_cross_border': 'BOOLEAN', 'psp': 'VARCHAR', 'status': 'VARCHAR',
                        'auth_ts': 'TIMESTAMP', 'settle_ts': 'TIMESTAMP', 'authorized_amount': 'BIGINT',
                        'settled_amount': 'BIGINT', 'item_count': 'INTEGER', 'risk_score': 'DOUBLE',
-                       'card_bin_country': 'VARCHAR'})
+                       'card_bin_country': 'VARCHAR', 'merchant_id': 'VARCHAR'})
+            {%- endif %}
         columns:
           - name: transaction_id
             data_tests: [unique, not_null]
+          - name: merchant_id
+            data_tests: [not_null]
 
       - name: fx_rates_daily
         meta:
           formatter: template
           external_location: >-
+            {% if env_var("CASARECON_SOURCE", "csv") == "lake" -%}
+            read_parquet('{{ env_var("CASARECON_LAKE_DIR", env_var("CASARECON_RAW_DIR", "../data/raw") ~ "/../lake") }}/staged/fx_rates_daily/*.parquet')
+            {%- else -%}
             read_csv('{{ env_var("CASARECON_RAW_DIR", "../data/raw") }}/fx_rates_daily.csv', header=true,
               columns={'rate_date': 'DATE', 'currency': 'VARCHAR', 'local_per_usd': 'DOUBLE'})
+            {%- endif %}

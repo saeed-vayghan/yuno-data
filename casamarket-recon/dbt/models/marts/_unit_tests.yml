@@ -4,6 +4,7 @@ version: 2
 unit_tests:
   - name: ut_categories_and_boundaries
     model: fct_transaction_discrepancy
+    overrides: {macros: {is_incremental: false}}
     given:
       - input: ref('int_transactions_usd')
         rows:
@@ -32,6 +33,7 @@ unit_tests:
 
   - name: ut_likely_causes
     model: fct_transaction_discrepancy
+    overrides: {macros: {is_incremental: false}}
     given:
       - input: ref('int_transactions_usd')
         rows:

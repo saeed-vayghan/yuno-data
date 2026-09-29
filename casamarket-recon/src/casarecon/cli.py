@@ -64,9 +64,14 @@ def generate(rows: ROWS = None, seed: SEED = None) -> None:
 
 
 @app.command()
-def build() -> None:
-    """Build the DuckDB file with dbt (the only command that writes the DB)."""
-    run_step("casarecon.pipeline.build:main")
+def build(
+    incremental: Annotated[bool, typer.Option(
+        "--incremental", help="Update the current DB: reprocess only the restatement window.")] = False,
+    lookback_days: Annotated[int | None, typer.Option(
+        help="Restatement window in days (default 15 = max settle lag).")] = None,
+) -> None:
+    """Build the DuckDB file with dbt (the only command that writes the DB). Default: full rebuild."""
+    run_step("casarecon.pipeline.build:main", incremental=incremental, lookback_days=lookback_days)
 
 
 @app.command()

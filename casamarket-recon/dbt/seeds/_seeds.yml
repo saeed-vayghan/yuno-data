@@ -13,19 +13,23 @@ seeds:
           - accepted_values: {arguments: {values: [0, 2], quote: false}}
 
   - name: psp_fees
-    description: Contracted per-transaction fee in USD (0 for every PSP; a fee in the data is unexpected).
-    config: {column_types: {psp: varchar, contract_fee_usd: double}}
+    description: >-
+      Per-transaction fee in USD, dated (SCD2): valid_from <= auth date < valid_to (null = open).
+      0 for every PSP, except PSP_C's fee change from 2026-06-01 (generator X3, ~$1.5).
+      Informational: not netted from expected_settled (the psp_fee cause still flags it).
+    config: {column_types: {psp: varchar, contract_fee_usd: double, valid_from: date, valid_to: date}}
     columns:
-      - name: psp
-        data_tests: [unique, not_null]
-      - name: contract_fee_usd
-        data_tests: [not_null]
+      - {name: psp, data_tests: [not_null]}
+      - {name: contract_fee_usd, data_tests: [not_null]}
+      - {name: valid_from, data_tests: [not_null]}
 
   - name: vat_rates
-    description: VAT by country; tax_recalc = PSP may recalculate tax on domestic settlement (MX, CO).
-    config: {column_types: {country: varchar, vat_pct: double, tax_recalc: boolean}}
+    description: >-
+      VAT by country, dated (valid_from <= auth date < valid_to, null = open);
+      tax_recalc = PSP may recalculate tax on domestic settlement (MX, CO).
+    config: {column_types: {country: varchar, vat_pct: double, tax_recalc: boolean, valid_from: date, valid_to: date}}
     columns:
-      - name: country
-        data_tests: [unique, not_null]
+      - {name: country, data_tests: [not_null]}
+      - {name: valid_from, data_tests: [not_null]}
       - name: tax_recalc
         data_tests: [not_null]

@@ -2,26 +2,26 @@
 
 As of 2026-06-30 23:58:00 (data time). Last closed week 2026-W25, compared with 2026-W24.
 
-**Open SEV2:** 2 · **Open SEV3:** 3 · **Insufficient data:** 0
+**Open SEV2:** 3 · **Open SEV3:** 2 · **Insufficient data:** 0
 
 ## Alerts
 
-| Severity | Status | Rule | Segment | Owner | Message |
-|---|---|---|---|---|---|
-| SEV2 | ONGOING | peer | PSP_B\|AR | PSP ops | PSP_B flags 17.4% of AR rows vs 14.9% for other PSPs (+2.4 pts, q = 0.025; 95% CI 15.8%-19.1%). |
-| SEV2 | ONGOING | peer | PSP_C\|ALL | PSP ops | PSP_C flags more than other PSPs in 4 countries: AR 17.8% (+2.8 pts), CL 16.5% (+2.8 pts), CO 16.9% (+3.3 pts), MX 16.1% (+2.3 pts). Same PSP everywhere points to a PSP-side cause (fee, rounding, policy). |
-| SEV2 | RESOLVED | peer | PSP_E\|CO | PSP ops | Resolved: PSP_E flags 16.4% of CO rows vs 13.6% for other PSPs (+2.7 pts, q = 0.039; 95% CI 14.3%-18.8%). |
-| SEV3 | ONGOING | change | PSP_C\|AR | PSP ops | PSP_C\|AR flag rate 20.0% in 2026-W25 is above the control limit 18.9% (baseline 13.8%). |
-| SEV3 | ONGOING | large_rows | ALL | PSP ops | 429 large rows ($16,323.14 absolute) in 2026-W25; top: PSP_A\|MX $1,825.25, PSP_D\|MX $1,723.42, PSP_C\|MX $1,372.68. |
-| SEV3 | ONGOING | settle_lag | CO\|200+ | PSP ops | 17.5% of CO\|200+ rows settle after 7 days (limit 6.0%). |
+| Severity | Status | Open since | Rule | Segment | Owner | Message |
+|---|---|---|---|---|---|---|
+| SEV2 | ONGOING | 2026-W24 | peer | PSP_B\|AR | PSP ops | PSP_B flags 18.1% of AR rows vs 14.5% for other PSPs (+3.6 pts, q < 0.001; 95% CI 16.4%-19.8%). |
+| SEV2 | ONGOING | 2026-W24 | peer | PSP_C\|CO | PSP ops | PSP_C flags 17.0% of CO rows vs 12.6% for other PSPs (+4.4 pts, q < 0.001; 95% CI 15.4%-18.7%). |
+| SEV2 | ONGOING | 2026-W24 | peer | PSP_C\|MX | PSP ops | PSP_C flags 17.3% of MX rows vs 13.5% for other PSPs (+3.8 pts, q < 0.001; 95% CI 16.1%-18.7%). |
+| SEV3 | RESOLVED | 2026-W24 | change | PSP_C\|CO | PSP ops | Resolved: PSP_C\|CO flag rate 19.0% in 2026-W24 is above the control limit 18.7% (baseline 14.1%). |
+| SEV3 | ONGOING | 2026-W24 | large_rows | ALL | PSP ops | 379 large rows ($6,341.13 absolute) in 2026-W25; top: PSP_B\|MX $723.66, PSP_A\|MX $602.30, PSP_C\|MX $498.40. |
+| SEV3 | ONGOING | 2026-W24 | settle_lag | CO\|200+ | PSP ops | 17.5% of CO\|200+ rows settle after 7 days (limit 6.0%). |
 
 ## Money
 
 | | 2026-W24 | 2026-W25 |
 |---|---|---|
-| Gross under | $17,005.41 | $20,115.97 |
-| Gross over | $28.46 | $31.08 |
-| Net | $16,976.95 | $20,084.89 |
+| Gross under | $10,567.61 | $10,296.47 |
+| Gross over | $28.65 | $29.64 |
+| Net | $10,538.96 | $10,266.83 |
 
 Reference line: $9,800.00 a week (the CFO's quarterly loss / 13).
 
@@ -29,16 +29,16 @@ Reference line: $9,800.00 a week (the CFO's quarterly loss / 13).
 
 | PSP | Country | Prev | Last | Change |
 |---|---|---|---|---|
-| PSP_C | CL | 15.5% | 20.1% | ▲ +4.6 pts (worse) |
-| PSP_B | CO | 12.2% | 16.0% | ▲ +3.8 pts (worse) |
-| PSP_D | AR | 10.6% | 14.5% | ▲ +3.8 pts (worse) |
-| PSP_E | CO | 10.8% | 14.3% | ▲ +3.5 pts (worse) |
-| PSP_E | AR | 12.1% | 15.5% | ▲ +3.3 pts (worse) |
-| PSP_D | MX | 13.0% | 16.0% | ▲ +3.0 pts (worse) |
-| PSP_B | CL | 13.2% | 15.4% | ▲ +2.2 pts (worse) |
-| PSP_E | CL | 15.3% | 17.5% | ▲ +2.1 pts (worse) |
-| PSP_C | MX | 14.6% | 16.3% | ▲ +1.7 pts (worse) |
-| PSP_C | CO | 15.9% | 17.2% | ▲ +1.3 pts (worse) |
+| PSP_B | CL | 11.2% | 16.0% | ▲ +4.8 pts (worse) |
+| PSP_E | CO | 10.8% | 14.7% | ▲ +3.9 pts (worse) |
+| PSP_D | CO | 8.7% | 11.0% | ▲ +2.4 pts (worse) |
+| PSP_C | AR | 14.5% | 16.2% | ▲ +1.6 pts (worse) |
+| PSP_A | MX | 12.5% | 13.9% | ▲ +1.4 pts (worse) |
+| PSP_D | MX | 15.0% | 16.3% | ▲ +1.3 pts (worse) |
+| PSP_D | AR | 13.9% | 15.1% | ▲ +1.3 pts (worse) |
+| PSP_E | MX | 11.9% | 12.5% | ▲ +0.5 pts (worse) |
+| PSP_A | AR | 11.9% | 12.5% | ▲ +0.5 pts (worse) |
+| PSP_B | AR | 17.8% | 18.1% | ▲ +0.3 pts (worse) |
 
 ## Insufficient data
 

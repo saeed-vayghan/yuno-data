@@ -5,7 +5,7 @@ import math
 import pandas as pd
 
 from casarecon.alerts.record import RuleInput, insufficient, pct, record, seg_of, trailing
-from casarecon.alerts.stats import bh, two_prop_p, wilson
+from casarecon.core.metrics import bh, flag_rate, two_prop_p, wilson
 from casarecon.core.queries.ui_q_base import prev_week
 
 
@@ -25,7 +25,7 @@ def peer(data: RuleInput, cfg: dict, week: str) -> list[dict]:
     big = g[ok].reset_index(drop=True)
     qs = bh([two_prop_p(r.n_flagged, r.n, r.peer_k, r.peer_n) for r in big.itertuples()])
     for r, q in zip(big.itertuples(), qs):
-        rate, peer_rate = r.n_flagged / r.n, r.peer_k / r.peer_n
+        rate, peer_rate = flag_rate(r.n_flagged, r.n), flag_rate(r.peer_k, r.peer_n)
         gap = rate - peer_rate
         if q < cfg["q_max"] and gap * 100 >= cfg["min_gap_pts"]:
             lo, hi = wilson(r.n_flagged, r.n)
@@ -54,11 +54,12 @@ def change(data: RuleInput, cfg: dict, week: str) -> list[dict]:
         if n < data.min_n or not full_base:
             out.append(insufficient(cfg, week, seg, n, data.min_n, **who))
             continue
-        p_bar = base["n_flagged"].sum() / base["n"].sum()
+        p_bar = flag_rate(int(base["n_flagged"].sum()), int(base["n"].sum()))
         ucl = p_bar + cfg["sigma"] * math.sqrt(p_bar * (1 - p_bar) / n)
-        if k / n > ucl:
-            out.append(record(cfg, week, seg, n=n, value=k / n, threshold=ucl, **who,
-                              message=f"{seg} flag rate {pct(k / n)} in {week} is above the "
+        rate = flag_rate(k, n)
+        if rate > ucl:
+            out.append(record(cfg, week, seg, n=n, value=rate, threshold=ucl, **who,
+                              message=f"{seg} flag rate {pct(rate)} in {week} is above the "
                                       f"control limit {pct(ucl)} (baseline {pct(p_bar)})."))
     return out
 

@@ -6,6 +6,7 @@ models:
     config: {contract: {enforced: true}}
     columns:
       - {name: transaction_id, data_type: varchar, data_tests: [unique, not_null]}
+      - {name: merchant_id, data_type: varchar, data_tests: [not_null]}
       - {name: customer_id, data_type: varchar}
       - {name: product_category, data_type: varchar}
       - {name: country, data_type: varchar}
@@ -57,24 +58,36 @@ models:
       - {name: likely_cause, data_type: varchar, data_tests: [{accepted_values: {arguments: {values: [fx_timing, psp_rounding, partial_capture, psp_fee, tax_recalc, fraud_hold, psp_adjustment, tip, unexplained]}}}]}
 
   - name: mart_psp_weekly
-    description: PSP x country x ISO week (auth date) on settled rows; week_month = month of the Thursday.
+    description: >-
+      Merchant x PSP x country x ISO week (auth date) on settled rows; week_month = month of the Thursday;
+      is_provisional = week ends inside the restatement window (late settlements may still change it).
+    data_tests:
+      - unique: {column_name: "merchant_id || '|' || psp_week_key"}
     columns:
-      - {name: psp_week_key, data_tests: [unique, not_null]}
+      - {name: merchant_id, data_tests: [not_null]}
+      - {name: psp_week_key, data_tests: [not_null]}
       - {name: n, data_tests: [not_null]}
       - {name: low_sample, data_tests: [not_null]}
+      - {name: is_provisional, data_tests: [not_null]}
 
   - name: mart_segment_rates
-    description: Flag rate + USD per segment (10 segment types) on settled rows.
+    description: Flag rate + USD per merchant x segment (10 segment types) on settled rows.
+    data_tests:
+      - unique: {column_name: "merchant_id || '|' || segment_key"}
     columns:
-      - {name: segment_key, data_tests: [unique, not_null]}
+      - {name: merchant_id, data_tests: [not_null]}
+      - {name: segment_key, data_tests: [not_null]}
       - name: segment_type
         data_tests:
           - accepted_values: {arguments: {values: [country, currency, psp, psp_country, amount_tier, country_tier, weekday, is_weekend, lag_bucket, cross_border]}}
 
   - name: mart_cause_summary
-    description: USD by likely cause x PSP x country x direction (non-exact settled rows).
+    description: USD by merchant x likely cause x PSP x country x direction (non-exact settled rows).
+    data_tests:
+      - unique: {column_name: "merchant_id || '|' || cause_key"}
     columns:
-      - {name: cause_key, data_tests: [unique, not_null]}
+      - {name: merchant_id, data_tests: [not_null]}
+      - {name: cause_key, data_tests: [not_null]}
 
   - name: mart_outliers
     description: Large rows (> 5% or >= $20) with the transaction columns.

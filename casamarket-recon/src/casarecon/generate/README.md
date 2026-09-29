@@ -17,13 +17,15 @@ Entry: `run.main(rows, seed)`. Run: `uv run recon generate [--rows 500] [--seed 
 | `rows.py` | base rows: ids, country/currency, PSP, cross-border (payer USD), tier then amount, items, risk, lag |
 | `settle.py` | authorized amount, P2 lag, as-of status (settle after window end -> `pending`), `expected_settled` via `core.money` |
 | `patterns.py` | P4 first (PSP_D cross-border CLP/COP floored to 1,000 major units), then buckets, causes, sizes |
-| `buckets.py` | hit 67/1/18/10/4 on settled rows (incl. P4); P1 and the X3 drift add points to `meaningful`; P3 weekend × 1.3 |
+| `buckets.py` | hit 67/1/18/10/4 on settled rows (incl. P4); P1 and the X3 drift add points to `meaningful`; P3 weekend × 1.3; `large` picks weigh `usd^-large_size_bias` (calibration, below) |
 | `causes.py` | cause that fits bucket and row (X1–X6, `rounding`), sized inside the bucket limits with a safety margin |
 | `classify.py` | the dbt category rule in numpy, so `true_bucket` = what SQL computes |
 | `truth.py` | labels + realized mix |
 | `writer.py` | the only I/O |
 
 ## Notes
+- `merchant_id` (contract v3, last CSV column) is `generator.yaml: merchant_id` (`casamarket`) on every row; it uses no RNG, so other bytes are unchanged.
+- **Calibration:** `large_size_bias: 0.8` makes large discrepancies (mostly partial captures, loss = order / items) land more on small orders. Quarter net loss: $234,270 at 0 -> $129,418 at 0.8 (brief ~$127k, +1.9%); `recon validate` still PASS (P1 gap 2.9 pts, P3 ratio 1.24).
 - `pending` comes only from the as-of rule (auth late in June), so its share is ~3.8%, not a random 3%.
 - A few cross-border rows (~0.2%) land in `exact`/`rounding` when the FX walk returns to the same level; truth keeps the realized bucket.
 - Sample: `data/sample/transactions_500.csv`, `fx_rates_daily.csv`, `labels_500.parquet` (= `--rows 500 --seed 42`).
