@@ -190,6 +190,16 @@ See [docs/PLATFORM.md](docs/PLATFORM.md) and [docs/ARCH-M4.md](docs/ARCH-M4.md).
 | `recon ops lineage` | dbt docs + `reports/lineage/LINEAGE.md` (models → sources) |
 | `make dev-check` | pii-scan + lineage |
 
+**Optional local stacks** (off by default; Docker needs ~1 GB each, run one at a time on a 2 GB Docker):
+
+| Stack | Start | What it shows |
+|---|---|---|
+| Airflow | `make airflow-up` → http://localhost:8080 | `casarecon_daily` DAG (ingest → incremental build → validate → analyze → alerts → report) and `casarecon_backfill`. See [docs/AIRFLOW.md](docs/AIRFLOW.md). |
+| Redpanda + Flink | `make stream-up stream-job stream-replay stream-compare` | Auths and settlements matched in real time by Flink SQL with the same category rules; `compare` checks ≥ 99% agreement with batch. See [docs/STREAM.md](docs/STREAM.md). |
+
+Notes: both stacks mount `./data` and `./reports`, so don't run `make all` while a DAG or replay is running.
+Ports are overridable (`AIRFLOW_PORT`, `FLINK_UI_PORT`) if 8080/8081 are taken. Airflow needs ~1.5 GB for the full run.
+
 Reference data is dated (`valid_from` / `valid_to` in the fee and VAT seeds), and every table carries `merchant_id`.
 Metric definitions live once in `core/metrics.py`.
 
