@@ -5,7 +5,7 @@ _As of 2026-06-30T23:58:00 · ranked by estimated saving per quarter · evidence
 | Rank | Action | Evidence | Est. $ saving / quarter (method) | Owner | Implementation |
 |---|---|---|---|---|---|
 | R1 | Reconcile partial captures and holds to order changes | F1, F3 | $9,989 (excess loss × 30%) | Ops | Join order events; auto-close explained rows |
-| R2 | Dispute the new PSP_C per-transaction fee | F4, F5 | $1,067 (excess loss × 70%) | Finance | Compare with contract (`psp_fees` = 0); claim back since the drift started |
+| R2 | Dispute the new PSP_C per-transaction fee | F4, F5 | $1,067 (excess loss × 70%) | Finance | Compare with the contract fee (`psp_fees` seed: PSP_C $1.50 dated from 2026-06-01); claim back anything not agreed since the drift started |
 | R3 | Escalate PSP_B AR variance; renegotiate settlement terms | F6 | $577 (excess loss × 50%) | Payments ops | Weekly variance report to PSP_B; SLA clause with credit on excess |
 | R4 | Escalate PSP_C MX variance; renegotiate settlement terms | F8 | $394 (excess loss × 50%) | Payments ops | Weekly variance report to PSP_C; SLA clause with credit on excess |
 | R5 | Escalate PSP_B settlement adjustments | F9 | $362 (excess loss × 50%) | Payments ops | Ask PSP_B for reason codes on every adjustment; dispute the unexplained ones |

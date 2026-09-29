@@ -84,7 +84,7 @@ Likely causes (no PSP names in the rules): `fx_timing, psp_rounding, partial_cap
 psp_adjustment, tip, unexplained`. Cut-offs live in `config/thresholds.yaml`.
 
 ### Assumptions
-- Data is synthetic and follows the brief's ranges: about 14% flagged and 33% non-exact. The CFO's 18% and $127k are not reproduced; they are only compared as estimates.
+- Data is synthetic and follows the brief's ranges: about 14% flagged and 33% non-exact. The generator is calibrated so the quarter's net loss lands near the CFO's ~$127k (`large_size_bias` in `config/generator.yaml`); the CFO's 18% flag rate is not reproduced. Both are compared as estimates.
 - Both amounts are in the merchant's local currency, in integer minor units (CLP 0 decimals).
 - Cross-border = `payer_currency = USD`. Expected settled removes the auth→settle FX move; USD uses the auth-day rate.
 - "Meaningful" = |residual| > 2% or ≥ $20. Cut-offs are in `config/thresholds.yaml`; FINDINGS shows sensitivity at 1/2/3%.
@@ -126,10 +126,15 @@ psp_adjustment, tip, unexplained`. Cut-offs live in `config/thresholds.yaml`.
 |---|---|---|
 | `peer` | a PSP × country flags more than its peers (q < 0.05, gap ≥ 2 pts) | PSP ops |
 | `change` | a segment's rate jumps > 3σ vs its last 8 weeks | PSP ops |
-| `money_leak` | under-settled USD share or weekly $ passes the limit | Finance |
+| `money_leak` | under-settled USD share of settled USD passes 1.5% (SEV3) / 2.0% (SEV2) | Finance |
 | `large_rows` | `large` rows in the week (top 3 listed) | PSP ops |
 | `pending_aging` | > 10% (SEV3) / 25% (SEV2) of pending rows older than 7 days | PSP ops + Finance |
 | `settle_lag` | late settlements (> 7 d) above 6% in a country × tier | PSP ops |
+
+If one PSP fires `peer` in 3+ countries, the rows collapse into one PSP-wide alert (`PSP_C|ALL`).
+Alert memory: every run appends to `data/alerts/history.jsonl` (gives `open_since`); `recon alert
+list | ack | mute | unmute | history` manage `config/alert_state.yaml`. What would be sent (after mute
+and dedupe) goes to the local outbox `reports/notifications.jsonl`.
 
 Segments with fewer than 50 rows give `INSUFFICIENT_DATA`, not an alert. Slack is off unless `slack.enabled: true`
 and `SLACK_WEBHOOK_URL` is set. Design: [docs/05-alert-system.svg](docs/05-alert-system.svg).
@@ -163,14 +168,30 @@ Documented, not built. See [docs/10-aws-solution.svg](docs/10-aws-solution.svg).
 
 ## Limitations and next steps
 - **Synthetic data:** the causes were planted, so the truth check measures the rules against the generator, not the real world.
-- **Single node, full rebuild each run:** fine for millions of rows. Incremental models are the next step at scale.
-- **No alert state store:** NEW/ONGOING/RESOLVED compares two weeks. Acknowledgement and muting need a small state table.
+- **Single node:** default is a full rebuild each run; `recon build --incremental` exists (restatement window, see below) but gains little at 135k rows.
+- **Local lake only:** per-PSP files, quarantine and staged parquet live under `data/lake/` (no cloud storage).
 - **Next steps:**
-  - Real PSP settlement files, with a contract check per PSP.
+  - Real PSP settlement files through `recon ingest` (formats in `config/ingest.yaml`).
   - The real daily FX feed.
-  - Per-PSP fee contracts in `psp_fees`.
+  - Real per-PSP fee contracts in the dated `psp_fees` seed.
   - Order events, to confirm partial captures.
   - CI on every push (`.github/workflows/ci.yml`).
+
+## Local dev tools
+See [docs/PLATFORM.md](docs/PLATFORM.md) and [docs/ARCH-M4.md](docs/ARCH-M4.md). All local; nothing is deployed.
+
+| Command | What it does |
+|---|---|
+| `make lake` | land per-PSP daily files → contract check (bad files → `data/lake/quarantine/`) → staged parquet → DQ check → `CASARECON_SOURCE=lake` build |
+| `recon ingest land / load [--from --to] / check` | the lake steps one by one; DQ result in `reports/ingest_dq.json` (freshness, volume, schema drift) |
+| `recon build --incremental [--lookback-days 15]` | rebuild only rows inside the restatement window; weeks inside it are `is_provisional` |
+| `recon ops backfill --from D --to D` | replay days: reload landing files + incremental build |
+| `recon ops pii-scan` | fail (exit 5) if a banned field or a full customer ID appears in outputs |
+| `recon ops lineage` | dbt docs + `reports/lineage/LINEAGE.md` (models → sources) |
+| `make dev-check` | pii-scan + lineage |
+
+Reference data is dated (`valid_from` / `valid_to` in the fee and VAT seeds), and every table carries `merchant_id`.
+Metric definitions live once in `core/metrics.py`.
 
 ## Development
 - **Layout:** see `OWNERSHIP.md`. Each major folder has a short README.

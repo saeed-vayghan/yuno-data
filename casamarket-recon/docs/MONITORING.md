@@ -36,7 +36,7 @@ and `reports/alerts.md`. Limits live in `config/alerts.yaml` and `config/thresho
 |---|---|---|---|---|
 | Peer | Is this PSP worse than the other PSPs in the same country? | Flag rate over the last 4 closed weeks is at least 2 pts above peers and the gap is significant (q < 0.05). If one PSP fires in 3+ countries, you get one PSP-wide alert instead | SEV2 | PSP ops |
 | Change | Is this week worse than usual? | Last closed week is above the normal range of the 8 weeks before it (3 sigma) | SEV3 | PSP ops |
-| Money leak | Are we losing more money than usual? | Under-settled USD is more than 2.5% (SEV3) or 3.5% (SEV2) of settled USD, after FX (normal weeks: 1.6–2.0%) | SEV3 / SEV2 | Finance |
+| Money leak | Are we losing more money than usual? | Under-settled USD is more than 1.5% (SEV3) or 2.0% (SEV2) of settled USD, after FX (normal weeks: about 0.8–1.1%) | SEV3 / SEV2 | Finance |
 | Large rows | How many rows need a closer look? | Any large rows last week: one summary with count, $ and top 3 segments (rows are on Outliers) | SEV3 | PSP ops |
 | Pending aging | Is money stuck unsettled? | More than 10% (SEV3) or 25% (SEV2) of pending rows are older than 7 days | SEV3 / SEV2 | PSP ops + Finance |
 | Settle lag | Are orders settling late? | More than 6% of a country × size tier settles after 7 days (last 4 weeks) | SEV3 | PSP ops |

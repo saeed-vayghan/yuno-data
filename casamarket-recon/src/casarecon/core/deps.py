@@ -30,7 +30,7 @@ def get_files() -> ReportFiles:
 
 
 def get_notifier() -> Notifier:
-    from casarecon.adapters.slack import post
+    from casarecon.adapters.notify_slack import post
 
     return post
 

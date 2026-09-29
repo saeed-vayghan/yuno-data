@@ -12,7 +12,7 @@
   {
     "action": "Dispute the new PSP_C per-transaction fee",
     "evidence": "F4, F5",
-    "implementation": "Compare with contract (`psp_fees` = 0); claim back since the drift started",
+    "implementation": "Compare with the contract fee (`psp_fees` seed: PSP_C $1.50 dated from 2026-06-01); claim back anything not agreed since the drift started",
     "method": "excess loss × 70%",
     "owner": "Finance",
     "rank": 2,

@@ -9,7 +9,7 @@ alerts:   ; uv run recon alerts
 report:   ; uv run recon report
 app:      ; uv run recon dashboard
 test:     ; uv run pytest -q
-clean:    ; rm -rf data/raw data/truth data/*.duckdb data/*.duckdb.wal data/.dbt dbt/target dbt/logs
+clean:    ; rm -rf data/raw data/truth data/lake data/*.duckdb data/*.duckdb.wal data/.dbt dbt/target dbt/logs
 
 # Two full runs must give byte-identical data + reports (run_manifest.json holds timestamps; PNGs are not byte-stable).
 HASHED = find data/raw/transactions.csv reports -type f \( -name '*.json' -o -name '*.jsonl' -o -name '*.md' -o -name '*.csv' \) ! -name run_manifest.json | sort

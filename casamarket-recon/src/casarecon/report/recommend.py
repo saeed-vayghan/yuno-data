@@ -12,7 +12,7 @@ PEER = ("Escalate {psp} {country} variance; renegotiate settlement terms", "Paym
 ROUNDING = ("Get {psp} to stop rounding cross-border settlements", "Eng + {psp}",
             "Ticket with signature evidence; monitor `rounding_flag` share weekly", 0.7)
 FEE = ("Dispute the new {psp} per-transaction fee", "Finance",
-       "Compare with contract (`psp_fees` = 0); claim back since the drift started", 0.7)
+       "Compare with the contract fee (`psp_fees` seed: PSP_C $1.50 dated from 2026-06-01); claim back anything not agreed since the drift started", 0.7)
 ADJUSTMENT = ("Escalate {psp} settlement adjustments", "Payments ops",
               "Ask {psp} for reason codes on every adjustment; dispute the unexplained ones", 0.5)
 LAG = ("Settlement SLA for {country} orders over $300", "PSP ops",
