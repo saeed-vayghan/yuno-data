@@ -147,6 +147,7 @@ PLUGINS = {
     "ingest": "casarecon.ingest.cli:app",   # recon ingest ...  (landing, quarantine, lake zones, DQ)
     "alert": "casarecon.alerts.cli:app",    # recon alert ...   (history, ack, mute, notify)
     "ops": "casarecon.ops.cli:app",         # recon ops ...     (backfill/replay, lineage, platform)
+    "stream": "casarecon.stream.cli:app",   # recon stream ...  (replay events to Redpanda, compare with batch)
 }
 for _name, _target in PLUGINS.items():
     try:

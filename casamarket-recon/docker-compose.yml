@@ -1,3 +1,8 @@
+# Optional local dev stacks (off by default; enable with --profile airflow / --profile stream).
+include:
+  - infra/airflow/compose.yml
+  - infra/stream/compose.yml
+
 services:
   recon:
     build: .

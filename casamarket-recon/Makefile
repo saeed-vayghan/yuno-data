@@ -30,3 +30,6 @@ lake:
 dev-check:
 	uv run recon ops pii-scan
 	uv run recon ops lineage
+
+# Optional local stacks: each infra/<stack>/targets.mk adds its own targets.
+-include infra/airflow/targets.mk infra/stream/targets.mk
