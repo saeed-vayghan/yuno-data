@@ -9,7 +9,8 @@ MASK = re.compile(r"^cus_••••.{4}$")
 
 def _text(at) -> str:
     kinds = ("markdown", "caption", "info", "title", "subheader")
-    return "\n".join(str(e.value) for kind in kinds for e in getattr(at, kind))
+    text = "\n".join(str(e.value) for kind in kinds for e in getattr(at, kind))
+    return text.replace("\\$", "$")  # pages escape '$' so markdown does not render LaTeX
 
 
 def test_overview_root_causes_and_alerts_render(app, fake_data):
@@ -18,7 +19,7 @@ def test_overview_root_causes_and_alerts_render(app, fake_data):
     text = _text(at)
     assert "PSP_B · W24 (Jun 8–14) · Net loss $4,210.00" in text
     assert "Data as of 2026-06-30 · Last closed week W25 (Jun 15–21)" in text
-    assert [m.value for m in at.metric][:3] == ["14.2%", "$9.8k", "9"]
+    assert [m.value for m in at.metric] == ["14.2%", "$9.8k", "9", "2 (1 SEV2)"]  # open alerts
     assert "not available yet" in text  # week_over_week is a stub: only that block greys out
     at.switch_page("views/root_causes.py").run()
     assert not at.exception
@@ -26,7 +27,13 @@ def test_overview_root_causes_and_alerts_render(app, fake_data):
     assert "Top cause: Partial capture, 32% of the loss. Tip: ruled out (0 rows)." in text
     assert "Recommendations are not built yet" in text and "**F1** PSP_B in AR" in text
     at.switch_page("views/alerts.py").run()
-    assert not at.exception and any("Coming in" in i.value for i in at.info)
+    assert not at.exception
+    assert at.title[0].value == "Alerts · last closed week W25 (Jun 15–21)"
+    assert [m.value for m in at.metric] == ["1", "1", "1", "1"]  # SEV2 · SEV3 · Info · Resolved
+    table = at.dataframe[0].value
+    assert list(table["Severity"]) == [
+        "▲ SEV2 · same day", "✓ Resolved · was SEV2", "● SEV3 · weekly"]
+    assert at.expander[0].label == "Insufficient data (1)"
 
 
 def test_outliers_filters_carry_over_and_missing_db(app, fake_data, monkeypatch):
@@ -56,5 +63,5 @@ def test_similar_rows_handoff_lands_on_drill_down(app, fake_data):
     assert at.multiselect(key="w_psp").value == ["PSP_D"]
     assert at.multiselect(key="w_country").value == ["CL"]  # link replaces, not merges
     assert at.multiselect(key="w_cause").value == ["psp_rounding"]
-    assert "Active: PSP_D · CL" in _text(at) and len(at.dataframe) == 1
+    assert "Active: PSP_D · CL" in _text(at) and len(at.dataframe[-1].value) == 3
     assert "Highest: PSP_A at 21.3%, range 19.8–22.9%." in _text(at)

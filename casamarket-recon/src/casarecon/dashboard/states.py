@@ -11,6 +11,7 @@ from typing import TypeVar
 import streamlit as st
 
 from casarecon.dashboard import data
+from casarecon.dashboard import format as fmt
 
 log = logging.getLogger("casarecon.dashboard")
 T = TypeVar("T")
@@ -30,6 +31,7 @@ def busy(key: str) -> None:
     st.warning(BUSY, icon="⏳")
     if st.button("Retry", key=f"retry_{key}"):
         st.rerun()
+    st.stop()  # one message per page, not one per block
 
 
 def not_built(label: str, detail: str = "") -> None:
@@ -44,7 +46,7 @@ def error(label: str) -> None:
 
 
 def empty(text: str = EMPTY) -> None:
-    st.info(text, icon="ℹ️")
+    st.info(fmt.md(text), icon="ℹ️")
 
 
 def section(label: str, render: Callable[[], T]) -> T | None:

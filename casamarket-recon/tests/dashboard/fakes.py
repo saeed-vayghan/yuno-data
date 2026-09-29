@@ -107,3 +107,17 @@ RECS = [{"rank": 1, "action": "Escalate PSP_B Argentina variance", "evidence": "
 
 def similar_count(txn_id: str) -> dict:
     return {"psp": "PSP_D", "country": "CL", "likely_cause": "psp_rounding", "n": 142}
+
+
+def alerts() -> pd.DataFrame:
+    """Shaped like reports/alerts.jsonl: 1 open SEV2, 1 open SEV3, 1 resolved, 1 insufficient."""
+    return pd.DataFrame({
+        "period": ["2026-W25"] * 4, "rule_id": ["peer", "money_leak", "peer", "settle_lag"],
+        "segment": ["PSP_B|AR", "ALL", "PSP_E|CO", "CL|10-50"],
+        "key": ["peer|PSP_B|AR", "money_leak|ALL", "peer|PSP_E|CO", "settle_lag|CL|10-50"],
+        "severity": ["SEV2", "SEV3", "SEV2", "INFO"],
+        "status": ["NEW", "ONGOING", "RESOLVED", "INSUFFICIENT_DATA"],
+        "message": ["PSP_B flags 17.4% of AR rows", "Under-settled 1.9%", "Resolved: PSP_E", "n<50"],
+        "owner": ["PSP ops", "Finance", "PSP ops", "PSP ops"], "psp": ["PSP_B", None, "PSP_E", None],
+        "country": ["AR", None, "CO", "CL"], "n": [1982, 9908, 1031, 12],
+        "value": [0.17, 1.9, 0.16, 0.0], "threshold": [0.169, 1.5, 0.17, 0.0]})

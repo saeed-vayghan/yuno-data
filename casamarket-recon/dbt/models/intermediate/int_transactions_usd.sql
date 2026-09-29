@@ -10,7 +10,7 @@ with joined as (
         fs.local_per_usd                                               as fx_settle,  -- null unless settled
         t.authorized_amount / pow(10, e.exponent) / fa.local_per_usd   as amount_usd,
         (fs.local_per_usd / fa.local_per_usd - 1) * 100                as fx_move_pct,
-        date_diff('second', t.auth_ts, t.settle_ts) / 86400.0          as settle_lag_days
+        round(date_diff('second', t.auth_ts, t.settle_ts) / 86400.0, 2) as settle_lag_days
     from {{ ref('stg_transactions') }} t
     join {{ ref('currency_exponents') }} e using (currency)
     join {{ ref('vat_rates') }} v using (country)

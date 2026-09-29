@@ -1,19 +1,18 @@
-"""Pure statistics helpers. No I/O, no core imports (core may import this module)."""
+"""Pure statistics helpers. No I/O. Wilson comes from `core.rates` (pure, stdlib) so there is one copy."""
 
 import math
 from collections.abc import Sequence
 
 from scipy.stats import chi2_contingency, fisher_exact, mannwhitneyu, spearmanr
 from statsmodels.stats.multitest import multipletests
-from statsmodels.stats.proportion import proportion_confint
+
+from casarecon.core import rates as core_rates
 
 
 def wilson(k: int, n: int) -> tuple[float, float]:
-    """Wilson 95% interval for k successes out of n. n == 0 -> (0.0, 0.0)."""
-    if n <= 0:
-        return 0.0, 0.0
-    lo, hi = proportion_confint(int(k), int(n), alpha=0.05, method="wilson")
-    return float(lo), float(hi)
+    """Wilson 95% interval for k successes out of n. n == 0 -> (0.0, 0.0).
+    One implementation for core and analysis: delegates to `core.rates.wilson` (stdlib, pure)."""
+    return core_rates.wilson(int(k), int(n))
 
 
 def lift(rate: float, peer_rate: float) -> float:

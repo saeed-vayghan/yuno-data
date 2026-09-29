@@ -3,7 +3,6 @@
 import pytest
 
 from casarecon import core
-from casarecon.adapters import files
 
 
 def test_analyze_and_report_on_fixture_db(request, tmp_path, monkeypatch):
@@ -12,7 +11,7 @@ def test_analyze_and_report_on_fixture_db(request, tmp_path, monkeypatch):
     except pytest.FixtureLookupError:
         pytest.skip("fixture_db not available yet (INFRA M1)")
     monkeypatch.setenv("CASARECON_REPORTS_DIR", str(tmp_path / "reports"))
-    monkeypatch.setenv(files.FIGURE_FORMAT_ENV, "html")
+    monkeypatch.setenv("CASARECON_FIGURE_FORMAT", "html")
     from casarecon.analysis import run as analysis_run
     from casarecon.report import run as report_run
 

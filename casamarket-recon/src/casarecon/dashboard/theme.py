@@ -62,6 +62,13 @@ def style(fig: go.Figure, title: str, y_title: str) -> go.Figure:
 PLOTLY_CONFIG = {"displaylogo": False}
 
 
+def tint(color: str, amount: float = 0.25) -> str:
+    """Mix a colour with white: a light cell background that keeps dark text >= 4.5:1 contrast
+    (white text on vermilion or green is only ~3.5:1)."""
+    rgb = [int(color[i:i + 2], 16) for i in (1, 3, 5)]
+    return "#" + "".join(f"{round(255 - (255 - c) * amount):02X}" for c in rgb)
+
+
 def cause_label(code: object) -> str:
     """'partial_capture' -> 'Partial capture'; None -> '—'."""
     if not isinstance(code, str):

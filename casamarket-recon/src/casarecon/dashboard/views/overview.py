@@ -10,7 +10,7 @@ HELP = {
     "rate": "Share of settled rows with a meaningful or large discrepancy after FX, last closed week.",
     "net": "Net USD loss (under-settled minus over-settled) in the last closed week.",
     "large": "Rows over 5% or at least $20 off after FX, last closed week.",
-    "alerts": "Alerts with status NEW or ONGOING (Info excluded).",
+    "alerts": "SEV2 + SEV3 alerts with status NEW or ONGOING for the last closed week (Info excluded).",
 }
 
 
@@ -20,16 +20,18 @@ def kpi_row() -> None:
     def core_kpis() -> None:
         k = data.kpis(filters.current(USES), week="last_closed")
         c1.metric("Flag rate", fmt.rate(k["flag_rate"]), delta=fmt.delta_pts(k["delta_rate_pts"]),
-                  delta_color="inverse", help=HELP["rate"], border=True)
+                  delta_color="inverse", delta_arrow="off", help=HELP["rate"], border=True)
         c2.metric("Net loss", fmt.usd_compact(k["net_usd"]), delta=fmt.delta_usd(k["delta_net_usd"]),
-                  delta_color="inverse", help=HELP["net"], border=True)
+                  delta_color="inverse", delta_arrow="off", help=HELP["net"], border=True)
         c3.metric("Large rows", fmt.count(k["n_large"]), delta=fmt.delta_int(k["delta_n_large"]),
-                  delta_color="inverse", help=HELP["large"], border=True)
+                  delta_color="inverse", delta_arrow="off", help=HELP["large"], border=True)
 
     def alerts_kpi() -> None:
         value, note = cards.open_alerts(data.alerts())
         c4.metric("Open alerts", value, help=HELP["alerts"], border=True)
         c4.caption(note)
+        if "alerts" in layout.pages():
+            c4.page_link(layout.pages()["alerts"], label="Open Alerts →", icon="🔔")
 
     with c1:
         states.section("KPIs (last closed week)", core_kpis)
@@ -49,10 +51,12 @@ def worst_week_card() -> None:
             return
         top = ranked.iloc[0]
         greyed = bool(top["low_sample"])
-        st.markdown(f"**{cards.worst_headline(top)}**" if not greyed else
-                    f":gray[{cards.worst_headline(top)}]")
+        # low sample: still shown (never an empty card), not bold, and labelled in words below;
+        # no grey text, which would fall under 4.5:1 contrast
+        headline = fmt.md(cards.worst_headline(top))
+        st.markdown(f"*{headline}*" if greyed else f"**{headline}**")
         st.markdown(cards.worst_detail(top))
-        st.caption(cards.next_line(ranked))
+        st.caption(fmt.md(cards.next_line(ranked)))
         st.caption("All PSPs and countries (same as `recon worst-week`); sidebar filters not applied.")
         if st.button(cards.link_label(top, "Drill-down"), key="ww_open"):
             filters.set_handoff(psp=[top["psp"]], date=(data.to_date(top["week_start"]),
@@ -78,7 +82,9 @@ def trends() -> None:
     st.caption(charts.rate_takeaway(rate_df))
     loss_df = rate_df if by == "Portfolio" else data.weekly_trend(f, by="portfolio")
     st.plotly_chart(charts.bar_weekly(loss_df), config=theme.PLOTLY_CONFIG)
-    st.caption(charts.loss_takeaway(loss_df))
+    st.caption(fmt.md(charts.loss_takeaway(loss_df)))
+    layout.chart_data(rate_df, {"auth_week": "Week", "series": "Series", "n": "n", "rate": "Flag rate",
+                                "net_usd": "Net loss (USD)", "is_closed": "Closed"})
 
 
 def week_over_week() -> None:

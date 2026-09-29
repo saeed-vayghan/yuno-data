@@ -21,7 +21,7 @@ def fake_data(monkeypatch):
         "kpis": lambda f, week="last_closed": fakes.KPIS, "weekly_trend": fakes.weekly_trend,
         "week_over_week": fakes.not_built, "transactions": fakes.transactions,
         "transactions_csv": lambda f, m=None: fakes.transactions(f, m).to_csv(index=False).encode(),
-        "outlier_summary": fakes.outlier_summary, "alerts": lambda: None,
+        "outlier_summary": fakes.outlier_summary, "alerts": fakes.alerts,
         "segment_rates": fakes.segment_rates, "category_mix": fakes.category_mix,
         "cause_summary": fakes.cause_summary, "excess_loss": fakes.excess_loss,
         "findings": lambda: fakes.FINDINGS, "recommendations": lambda: None,

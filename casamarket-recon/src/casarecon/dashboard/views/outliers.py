@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from casarecon.dashboard import data, filters, layout, states, tables, theme, widgets
+from casarecon.dashboard import format as fmt
 
 USES = {"date", "country", "psp", "tier", "xb", "cause"}
 LIMIT = 1000
@@ -18,7 +19,7 @@ def summary(f: data.Filters, min_usd: float, shown: int) -> int:
     except NotImplementedError:
         st.caption(f"{shown:,} transactions shown (totals not available yet).")
         return shown
-    st.markdown(tables.summary_line(s["n"], s["gross_under_usd"], s["gross_over_usd"]))
+    st.markdown(fmt.md(tables.summary_line(s["n"], s["gross_under_usd"], s["gross_over_usd"])))
     return int(s["n"])
 
 
@@ -57,7 +58,7 @@ def detail(rows: pd.DataFrame, selected: list[int]) -> None:
         except NotImplementedError:
             d = row.to_dict()  # rich FX detail not built yet: show what the row has
         for line in tables.detail_lines(d):
-            st.markdown(line)
+            st.markdown(fmt.md(line))
         states.section("Similar rows", lambda: similar(txn_id))
         st.code(txn_id, language=None)
 
@@ -71,6 +72,7 @@ def render() -> None:
     total = summary(f, min_usd, len(rows))
     if rows.empty:
         states.empty(f"No transactions over ${min_usd:,.0f}. Try a lower minimum or clear filters.")
+        st.button("Clear filters", on_click=filters.clear, key="out_clear")
         return
     note = tables.cap_note(len(rows), total)
     if note:

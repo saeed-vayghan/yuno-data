@@ -21,12 +21,12 @@ Entry: `launch.main(port, host)` runs `streamlit run app.py` from the repo root 
 - Money: local amounts with ISO code and seed exponent (`CLP 12,345`, `MXN 1,234.56`); USD 2 dp.
 - Colour never carries meaning alone: arrows + signs on deltas, words on categories, direct labels on lines.
 
-## Status (M2)
+## Status (M3)
 Live: Overview (worst-week card -> Drill-down, KPIs, trends, week-over-week), Drill-down (segment +
 page filters, KPIs, flag rate by group with 95% ranges, category mix, table + CSV up to 50k rows),
 Outliers (> $N table, CSV, masked customers, core detail panel, "See similar rows" -> Drill-down),
 Root causes & actions (loss by cause, drill into cause, findings, PSP × country heatmap, excess loss,
-recommendations, FINDINGS.md). Placeholder: Alerts (M3).
+recommendations, FINDINGS.md). Alerts (M3): counts, table with icon + word badges, View segment -> Drill-down.
 Cross-page links replace the filters with exactly what they name (`filters.set_handoff`).
 
 Tests: `uv run pytest -q tests/dashboard` (fake data module, no DB needed).

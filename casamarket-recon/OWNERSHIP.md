@@ -9,7 +9,7 @@ Owners: **INFRA** = Architect + Engineer (infra/pipeline) · **BACKEND** = Engin
 |---|---|
 | `pyproject.toml`, `uv.lock`, `.python-version` | INFRA |
 | `Makefile`, `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `.gitignore`, `.env.example` | INFRA |
-| `README.md` (top level), `OWNERSHIP.md` | INFRA |
+| `README.md` (top level; FRONTEND fills `## Monitoring`), `OWNERSHIP.md`, `docs/**`, `.github/**` | INFRA |
 | `config/**`, `contracts/**` | INFRA |
 | `dbt/**` | INFRA |
 | `src/casarecon/cli.py`, `src/casarecon/cli_query.py` | INFRA |

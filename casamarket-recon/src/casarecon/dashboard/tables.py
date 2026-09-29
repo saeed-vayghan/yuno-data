@@ -44,7 +44,7 @@ def txn_columns() -> dict:
         "transaction_id": col.TextColumn("Transaction"),
         "auth_date": col.DateColumn("Auth date", format="YYYY-MM-DD"),
         "psp_country": col.TextColumn("PSP · Country"),
-        "residual_usd": col.NumberColumn("Discrepancy after FX (USD)", format="$%.2f",
+        "residual_usd": col.NumberColumn("Discrepancy after FX (USD)", format="dollar",
                                          help="Settled minus expected settle, FX move removed, in USD."),
         "direction": col.TextColumn("Under / over"),
         "raw_diff": col.TextColumn("Raw difference (local)",

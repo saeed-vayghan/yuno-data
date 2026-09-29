@@ -1,6 +1,6 @@
 {
   "build": {
-    "built_at": "2026-09-29T15:27:52+00:00",
+    "built_at": "2026-09-29T15:37:10+00:00",
     "row_counts": {
       "intermediate.int_transactions_usd": 135000,
       "marts.fct_transaction_discrepancy": 135000,
@@ -91,7 +91,7 @@
       {
         "name": "median settle lag (days)",
         "target": "1-7",
-        "realized": 3.1649,
+        "realized": 3.16,
         "low": 1,
         "high": 7,
         "status": "PASS"
@@ -99,7 +99,7 @@
       {
         "name": "lag outliers (> 7 d)",
         "target": "> 0",
-        "realized": 2934.0,
+        "realized": 2933.0,
         "low": 1,
         "high": Infinity,
         "status": "PASS"
@@ -187,7 +187,7 @@
       {
         "name": "P2 CO > $300 median lag gap (days)",
         "target": ">= 2",
-        "realized": 3.3131,
+        "realized": 3.32,
         "low": 2,
         "high": Infinity,
         "status": "PASS"

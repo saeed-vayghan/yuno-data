@@ -16,6 +16,16 @@ def as_of_text(s: dict) -> str:
     return f"Data as of {day:%Y-%m-%d} · Last closed week {week}{rows}"
 
 
+def closed_week_label() -> str | None:
+    """'W25 (Jun 15–21)' from core status; None when status is not available."""
+    try:
+        s = data.status()
+    except Exception:  # noqa: BLE001 - a title detail only
+        return None
+    return fmt.week_label(s["last_closed_week"], data.to_date(s["last_closed_start"]),
+                          data.to_date(s["last_closed_end"]))
+
+
 def as_of_banner() -> None:
     def render() -> None:
         st.caption(as_of_text(data.status()))
@@ -29,6 +39,12 @@ def page_header(title: str, uses: set[str]) -> None:
     as_of_banner()
     f = st.session_state.get("filters", data.Filters())
     st.caption(filters.describe(f, uses))
+
+
+def chart_data(df, columns: dict[str, str], label: str = "Chart data (table)") -> None:
+    """Every chart's numbers also as a table (screen readers, copy/paste). columns: {col: header}."""
+    with st.expander(label):
+        st.dataframe(df[list(columns)].rename(columns=columns), hide_index=True)
 
 
 def pages() -> dict:

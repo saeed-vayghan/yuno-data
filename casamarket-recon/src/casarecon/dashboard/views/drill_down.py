@@ -33,6 +33,8 @@ def group_chart(f: data.Filters) -> None:
         return
     st.plotly_chart(charts_segments.rate_bars(seg, group), config=theme.PLOTLY_CONFIG)
     st.caption(charts_segments.rate_takeaway(seg))
+    layout.chart_data(seg, {"segment_value": group, "n": "n", "rate": "Flag rate",
+                            "ci_low": "95% low", "ci_high": "95% high", "low_sample": "Low sample"})
 
 
 def mix_chart(f: data.Filters) -> None:
@@ -46,6 +48,7 @@ def mix_chart(f: data.Filters) -> None:
     except Exception:  # noqa: BLE001 - caption falls back to the latest week
         pass
     st.caption(charts_segments.mix_takeaway(mix, last_closed))
+    layout.chart_data(mix, {"auth_week": "Week", "category": "Category", "n": "n", "share": "Share"})
 
 
 def table(f: data.Filters, n: int | None) -> None:

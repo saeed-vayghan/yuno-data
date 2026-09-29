@@ -52,6 +52,8 @@ def scoped(f: data.Filters, uses: set[str]) -> data.Filters:
 
 def describe(f: data.Filters, uses: set[str]) -> str:
     """'Active: PSP_B · AR · Jun 15–21. Auth dates not used here.'"""
+    if not uses:
+        return "Sidebar filters not used here (this page covers all segments)."
     parts = [", ".join(f.psp) or "all PSPs", ", ".join(f.country) or "all countries"]
     if "date" in uses and f.date_from and f.date_to:
         parts.append(date_text(f.date_from, f.date_to))

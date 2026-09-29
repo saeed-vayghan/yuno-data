@@ -4,9 +4,10 @@ Shell only: read reports/findings.json + reports/analysis/*.csv (+ alerts.jsonl 
 render, write FINDINGS.md, RECOMMENDATIONS.md and recommendations.json.
 """
 
-from casarecon.adapters import files
 from casarecon.core import log, paths
+from casarecon.core.deps import get_files
 from casarecon.core.errors import CasaReconError
+from casarecon.ports import ReportFiles
 from casarecon.report.recommend import recommend
 from casarecon.report.render import TABLES, render_findings, render_recommendations
 
@@ -14,8 +15,9 @@ REC_KEYS = ("rank", "action", "evidence", "owner", "implementation", "usd_quarte
             "method")
 
 
-def main() -> dict:
+def main(files: ReportFiles | None = None) -> dict:
     """Render both reports; return {'findings': n, 'recommendations': n}."""
+    files = files or get_files()
     out = paths.reports_dir()
     doc = files.read_json(out / "findings.json")
     if doc is None:

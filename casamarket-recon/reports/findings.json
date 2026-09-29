@@ -211,8 +211,8 @@
     },
     {
       "ci": [
-        0.373466,
-        0.41807
+        0.37293,
+        0.417523
       ],
       "country": "CO",
       "figure": "figures/f9_co_over_300_lag.png",
@@ -220,15 +220,15 @@
       "id": "F9",
       "key": "co_over_300_lag",
       "kind": "lag",
-      "lift": 22.129116,
+      "lift": 22.09876,
       "likely_cause": null,
       "metric": "late share",
       "n": 1843,
-      "n_flagged": 729,
+      "n_flagged": 728,
       "peer_rate": 0.017875,
       "psp": null,
       "q": 0.0,
-      "rate": 0.395551,
+      "rate": 0.395008,
       "segment": "CO|over_300",
       "share_of_loss": 0.005363,
       "usd_median": 16.98,
@@ -408,7 +408,7 @@
       "key": "mx_over_300_lag",
       "lift": 1.007434,
       "metric": "late share",
-      "q": 0.812448,
+      "q": 0.817889,
       "segment": "MX|over_300"
     }
   ],

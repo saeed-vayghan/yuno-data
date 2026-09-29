@@ -60,7 +60,7 @@ _As of 2026-06-30T23:58:00 · data window 2026-04 to 2026-06 (3 months) · every
 
 ![F8](figures/f8_psp_c_fee_drift.png)
 
-**F9. CO orders over $300 settle late more often than other CO orders.** 39.6% late share on CO|over_300 (n = 1,843, 95% CI [37.3–41.8%]) vs 1.8% for peers — lift 22.13×, q < 0.001. $ impact: $1,258 per quarter (0.5% of loss; median loss $17; delay, not loss). Likely cause: `n/a`. Action: see R5.
+**F9. CO orders over $300 settle late more often than other CO orders.** 39.5% late share on CO|over_300 (n = 1,843, 95% CI [37.3–41.8%]) vs 1.8% for peers — lift 22.10×, q < 0.001. $ impact: $1,258 per quarter (0.5% of loss; median loss $17; delay, not loss). Likely cause: `n/a`. Action: see R5.
 
 ![F9](figures/f9_co_over_300_lag.png)
 
@@ -80,7 +80,7 @@ _As of 2026-06-30T23:58:00 · data window 2026-04 to 2026-06 (3 months) · every
 
 ![F13](figures/f13_psp_d_rounding.png)
 
-**Not significant** (worse than peers, but q ≥ 0.05): `psp_c_cl_peer` (q = 0.055), `psp_c_adjustment` (q = 0.128), `psp_b_tax_recalc` (q = 0.236), `psp_a_fraud_hold` (q = 0.378), `psp_d_cl_peer` (q = 0.418), `cl_over_300_lag` (q = 0.478), `psp_b_partial_capture` (q = 0.478), `psp_c_ar_peer` (q = 0.706), `psp_b_fraud_hold` (q = 0.763), `mx_over_300_lag` (q = 0.812).
+**Not significant** (worse than peers, but q ≥ 0.05): `psp_c_cl_peer` (q = 0.055), `psp_c_adjustment` (q = 0.128), `psp_b_tax_recalc` (q = 0.236), `psp_a_fraud_hold` (q = 0.378), `psp_d_cl_peer` (q = 0.418), `cl_over_300_lag` (q = 0.478), `psp_b_partial_capture` (q = 0.478), `psp_c_ar_peer` (q = 0.706), `psp_b_fraud_hold` (q = 0.763), `mx_over_300_lag` (q = 0.818).
 
 ## Answers to the brief's questions
 
@@ -93,11 +93,11 @@ All rates are over settled payments; a flag is a `meaningful` or `large` gap. Pe
 | country | AR | 24,764 | 14.4% | 14.0% | 14.9% | 13.9% | 1.04 | 0.058 | $1,709 |
 | country | CL | 18,660 | 14.0% | 13.5% | 14.5% | 14.0% | 0.998 | 1.000 | $0 |
 | country | CO | 31,382 | 13.7% | 13.4% | 14.1% | 14.1% | 0.975 | 0.251 | $0 |
-| country | MX | 49,583 | 13.9% | 13.6% | 14.3% | 14.0% | 0.994 | 0.812 | $0 |
+| country | MX | 49,583 | 13.9% | 13.6% | 14.3% | 14.0% | 0.994 | 0.818 | $0 |
 | currency | ARS | 24,764 | 14.4% | 14.0% | 14.9% | 13.9% | 1.04 | 0.058 | $1,709 |
 | currency | CLP | 18,660 | 14.0% | 13.5% | 14.5% | 14.0% | 0.998 | 1.000 | $0 |
 | currency | COP | 31,382 | 13.7% | 13.4% | 14.1% | 14.1% | 0.975 | 0.251 | $0 |
-| currency | MXN | 49,583 | 13.9% | 13.6% | 14.3% | 14.0% | 0.994 | 0.812 | $0 |
+| currency | MXN | 49,583 | 13.9% | 13.6% | 14.3% | 14.0% | 0.994 | 0.818 | $0 |
 
 ### Which PSPs are most problematic?
 
@@ -115,14 +115,14 @@ All rates are over settled payments; a flag is a `meaningful` or `large` gap. Pe
 | psp_country | PSP_A|AR | 7,452 | 13.4% | 12.6% | 14.2% | 14.9% | 0.897 | 0.006 | $0 |
 | psp_country | PSP_A|CL | 5,519 | 13.2% | 12.3% | 14.1% | 14.3% | 0.923 | 0.120 | $0 |
 | psp_country | PSP_A|MX | 14,958 | 13.6% | 13.0% | 14.1% | 14.1% | 0.962 | 0.251 | $0 |
-| psp_country | PSP_B|CL | 4,673 | 13.7% | 12.7% | 14.7% | 14.1% | 0.969 | 0.637 | $0 |
-| psp_country | PSP_B|CO | 7,858 | 13.5% | 12.7% | 14.2% | 13.8% | 0.973 | 0.600 | $0 |
+| psp_country | PSP_B|CL | 4,673 | 13.7% | 12.7% | 14.7% | 14.1% | 0.969 | 0.647 | $0 |
+| psp_country | PSP_B|CO | 7,858 | 13.5% | 12.7% | 14.2% | 13.8% | 0.973 | 0.610 | $0 |
 | psp_country | PSP_D|AR | 3,764 | 13.9% | 12.9% | 15.1% | 14.5% | 0.959 | 0.525 | $0 |
 | psp_country | PSP_D|CO | 4,638 | 11.4% | 10.5% | 12.4% | 14.1% | 0.808 | < 0.001 | $0 |
-| psp_country | PSP_D|MX | 7,546 | 13.8% | 13.0% | 14.6% | 14.0% | 0.986 | 0.812 | $0 |
+| psp_country | PSP_D|MX | 7,546 | 13.8% | 13.0% | 14.6% | 14.0% | 0.986 | 0.818 | $0 |
 | psp_country | PSP_E|AR | 2,424 | 12.0% | 10.8% | 13.4% | 14.7% | 0.816 | 0.001 | $0 |
-| psp_country | PSP_E|CL | 1,940 | 13.7% | 12.2% | 15.3% | 14.0% | 0.974 | 0.812 | $0 |
-| psp_country | PSP_E|MX | 4,872 | 13.6% | 12.7% | 14.6% | 14.0% | 0.975 | 0.675 | $0 |
+| psp_country | PSP_E|CL | 1,940 | 13.7% | 12.2% | 15.3% | 14.0% | 0.974 | 0.818 | $0 |
+| psp_country | PSP_E|MX | 4,872 | 13.6% | 12.7% | 14.6% | 14.0% | 0.975 | 0.685 | $0 |
 
 ### Does transaction size matter?
 
@@ -139,15 +139,15 @@ All rates are over settled payments; a flag is a `meaningful` or `large` gap. Pe
 |---|---|---|---|---|---|---|---|---|---|
 | is_weekend | false | 88,842 | 13.0% | 12.8% | 13.3% | 16.4% | 0.795 | < 0.001 | $0 |
 | is_weekend | true | 35,547 | 16.4% | 16.0% | 16.8% | 13.0% | 1.26 | < 0.001 | $15,387 |
-| lag_bucket | 2-3 | 64,904 | 14.1% | 13.8% | 14.4% | 13.9% | 1.01 | 0.525 | $1,556 |
-| lag_bucket | 4-5 | 31,838 | 14.0% | 13.6% | 14.4% | 14.0% | 1 | 1.000 | $66 |
-| lag_bucket | 6-7 | 4,621 | 13.5% | 12.6% | 14.6% | 14.0% | 0.966 | 0.546 | $0 |
-| lag_bucket | 8+ | 2,646 | 14.3% | 13.0% | 15.7% | 14.0% | 1.02 | 0.812 | $189 |
-| lag_bucket | ≤1 | 20,380 | 13.8% | 13.3% | 14.2% | 14.0% | 0.98 | 0.478 | $0 |
+| lag_bucket | 2-3 | 64,982 | 14.1% | 13.8% | 14.4% | 13.9% | 1.01 | 0.525 | $1,563 |
+| lag_bucket | 4-5 | 31,909 | 14.0% | 13.6% | 14.4% | 14.0% | 0.999 | 1.000 | $0 |
+| lag_bucket | 6-7 | 4,663 | 13.7% | 12.7% | 14.7% | 14.0% | 0.976 | 0.706 | $0 |
+| lag_bucket | 8+ | 2,647 | 14.3% | 13.0% | 15.7% | 14.0% | 1.02 | 0.818 | $185 |
+| lag_bucket | ≤1 | 20,188 | 13.8% | 13.3% | 14.2% | 14.0% | 0.98 | 0.478 | $0 |
 | lag_over_300 | AR|over_300 | 1,379 | 1.5% | 1.0% | 2.3% | 1.9% | 0.819 | 0.478 | $0 |
 | lag_over_300 | CL|over_300 | 1,150 | 2.2% | 1.5% | 3.2% | 2.0% | 1.09 | 0.478 | $0 |
-| lag_over_300 | CO|over_300 | 1,843 | 39.6% | 37.3% | 41.8% | 1.8% | 22.1 | < 0.001 | $1,258 |
-| lag_over_300 | MX|over_300 | 3,143 | 1.7% | 1.3% | 2.2% | 1.7% | 1.01 | 0.812 | $1,918 |
+| lag_over_300 | CO|over_300 | 1,843 | 39.5% | 37.3% | 41.8% | 1.8% | 22.1 | < 0.001 | $1,258 |
+| lag_over_300 | MX|over_300 | 3,143 | 1.7% | 1.3% | 2.2% | 1.7% | 1.01 | 0.818 | $1,918 |
 
 ### Systematic issues: which PSP carries each cause?
 

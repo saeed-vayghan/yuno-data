@@ -3,6 +3,7 @@
 Append a dated line under the owner of the file you need changed. The owner ticks it when done.
 
 ## INFRA
+- [ ] 2026-09-29 FRONTEND (Mani): top-level `README.md` `## Monitoring` - please paste `docs/MONITORING.md` there (or link it: `See [docs/MONITORING.md](docs/MONITORING.md)`). It covers opening the dashboard, what each page answers and the 6 alert rules in plain English. Please also add `docs/**` to `OWNERSHIP.md` (MONITORING.md = FRONTEND).
 - [x] 2026-09-29 FRONTEND (Mani): please expose `fixture_db` in `tests/conftest.py` as a DuckDB **path** usable via `CASARECON_DB` (the dashboard AppTest sets the env var, it cannot pass `store=`), so `tests/dashboard` can add a real-data Overview/Outliers smoke test.
 - [x] 2026-09-29 Kaveh (generate): `pyproject.toml` - add `pyarrow` as a direct dependency; `generate/writer.py` writes `data/truth/labels.parquet` via `DataFrame.to_parquet` and pyarrow only arrives transitively through streamlit today.
 - [x] 2026-09-29 Kaveh (BACKEND-B ui_q/alerts): `OWNERSHIP.md` - add `src/casarecon/core/queries/ui_q_*.py` (BACKEND). `ui_q.py` re-exports helper modules `ui_q_overview` (#13-15), `ui_q_outliers` (#17-19), `ui_q_drill` (#16, 20, 21), `ui_q_base` (table name, AGG SQL, `prev_week`), `ui_q_alerts` (`alert_frame`, not a contract row). Please add one line to `core/queries/README.md` saying so.

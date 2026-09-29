@@ -45,6 +45,6 @@ def segment_filters(opts: dict, more: bool = False) -> dict:
 def min_usd(default: float = 50) -> float:
     value = st.number_input(
         "Min discrepancy after FX (USD)", min_value=0.0, value=float(_keep("min_usd", default)),
-        step=10.0, key="w_min_usd", on_change=_save, args=("min_usd",),
+        step=10.0, format="%.0f", key="w_min_usd", on_change=_save, args=("min_usd",),
         help="Shows rows where |settled − expected settle| in USD is greater than this (strict >).")
     return float(value)

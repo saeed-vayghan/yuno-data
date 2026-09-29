@@ -12,6 +12,11 @@ def _signed(text: str, x: float) -> str:
     return f"{MINUS}{text}" if x < 0 else f"+{text}"
 
 
+def md(text: str) -> str:
+    """Escape '$' for st.markdown / st.caption (a pair of '$' would render as LaTeX math)."""
+    return str(text).replace("$", "\\$")
+
+
 def usd(x: float) -> str:
     """1234.564 -> '$1,234.56'; -62.1 -> '−$62.10'."""
     return f"{MINUS if x < 0 else ''}${abs(x):,.2f}"

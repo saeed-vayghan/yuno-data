@@ -5,7 +5,7 @@ import re
 import pytest
 
 from casarecon import core
-from casarecon.adapters import files
+from casarecon.core.deps import get_files
 from casarecon.core import paths
 from casarecon.report import run as report_run
 from casarecon.report.render import TEMPLATES
@@ -24,6 +24,7 @@ def test_templates_have_no_hand_typed_numbers():
 def test_report_renders_findings_and_recommendations(tmp_env):
     with pytest.raises(core.CasaReconError):  # analyze has not run yet
         report_run.main()
+    files = get_files()
     doc, tables = run_analysis(make_fct())
     out = paths.reports_dir()
     for name, df in tables.items():

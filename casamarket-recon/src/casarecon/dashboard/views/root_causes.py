@@ -3,6 +3,7 @@
 import streamlit as st
 
 from casarecon.dashboard import cards, charts_causes, data, filters, layout, states, theme
+from casarecon.dashboard import format as fmt
 
 USES = {"country", "psp"}
 
@@ -16,6 +17,8 @@ def causes() -> None:
     ruled_out = charts_causes.cause_rows(cs)[1]
     note = "".join(f" {theme.cause_label(c)}: ruled out (0 rows)." for c in ruled_out)
     st.caption(charts_causes.cause_takeaway(cs) + note)
+    layout.chart_data(cs, {"likely_cause": "Cause", "n": "n", "net_usd": "Net loss (USD)",
+                           "share_of_loss": "Share of loss"})
     codes = charts_causes.cause_rows(cs)[0]["likely_cause"].tolist()
     c1, c2 = st.columns([3, 1], vertical_alignment="bottom")
     code = c1.selectbox("Drill into cause", codes, format_func=theme.cause_label, key="rc_cause",
@@ -36,7 +39,7 @@ def key_findings() -> None:
         return
     items = sorted(doc["items"], key=lambda i: -(i.get("usd_quarter") or 0))
     for item in items:
-        st.markdown(cards.finding_line(item))
+        st.markdown(fmt.md(cards.finding_line(item)))
     if not items:
         st.caption("No finding passed q < 0.05.")
 
@@ -45,6 +48,8 @@ def heatmap() -> None:
     seg = data.segment_rates("psp_country", None)
     st.plotly_chart(charts_causes.heatmap(seg), config=theme.PLOTLY_CONFIG)
     st.caption(charts_causes.heatmap_takeaway(seg))
+    layout.chart_data(seg, {"segment_value": "PSP|country", "n": "n", "rate": "Flag rate",
+                            "low_sample": "Low sample"})
 
 
 def excess() -> None:
@@ -73,16 +78,16 @@ def recommendations() -> None:
     if not recs:
         st.caption("No recommendation yet: no finding passed the significance bar.")
     for r in sorted(recs, key=lambda r: r["rank"]):
-        st.markdown(cards.recommendation_line(r))
+        st.markdown(fmt.md(cards.recommendation_line(r)))
         with st.expander("How to implement"):
-            st.markdown(r["implementation"])
+            st.markdown(fmt.md(r["implementation"]))
 
 
 def full_findings() -> None:
     doc = data.findings()
     if doc and doc.get("markdown"):
         with st.expander("Full findings (FINDINGS.md)"):
-            st.markdown(doc["markdown"])
+            st.markdown(fmt.md(doc["markdown"]))
 
 
 def render() -> None:
