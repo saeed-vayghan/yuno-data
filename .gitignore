@@ -73,3 +73,6 @@ mlruns/
 mlartifacts/
 compose/volumes/
 *.log
+
+
+artifacts/yuno/architect/09-best-practices

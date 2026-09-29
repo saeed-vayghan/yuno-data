@@ -118,9 +118,9 @@
 | Item | Brief | Our choice |
 |---|---|---|
 | Volume | ≥ 500 transactions | Default 135k (45k × 3 months, enough power for P1); `--rows 500` smoke run |
-| Period | 3–4 months | 4 full calendar months, so "last month" has full weeks |
+| Period | 3–4 months | 3 full calendar months (135k = 45k × 3) |
 | Countries / currencies | MX/MXN, CO/COP, AR/ARS, CL/CLP | Weights e.g. MX 40 / CO 25 / AR 15 / CL 20 |
-| PSPs | 3–5, e.g. PSP_A… | 4 PSPs: PSP_A–PSP_D |
+| PSPs | 3–5, e.g. PSP_A… | 5 PSPs: PSP_A–PSP_E |
 | Status mix | Mostly approved/settled; some failed and pending | Failed auth 4% · pending 3% (mostly in the last 7 days) |
 | Settlement lag | 1–7 days, some outliers | Most 1–5 days; ~2% outliers at 8–20 days |
 | Metadata | Customer ID, product category, amount tier, cross-border flag | Plus required: PSP, `payer_currency`, `item_count`, `risk_score`, card BIN country (no PAN) |

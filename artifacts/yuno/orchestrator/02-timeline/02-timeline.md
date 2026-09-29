@@ -84,3 +84,42 @@
 - Focus: the quality of the project's decisions.
 
 ---
+
+## [007] Backend and frontend implementation plans
+
+**Time:** 2026-09-29 16:29 CEST · **Phase:** Planning
+
+**Summary:** Started working on the implementation plans for both the backend and the frontend.
+
+**Details:**
+- Working on the infra/backend implementation plan.
+- Working on the frontend plans in parallel.
+- Status: in progress (unconfirmed whether finished).
+
+---
+
+## [008] Update to [007]: plan documents added
+
+**Time:** 2026-09-29 16:30 CEST · **Phase:** Planning
+
+**Summary:** Added the output documents for the backend and frontend plans from entry [007].
+
+**Details:**
+- Infra/backend implementation plan written by the Architect.
+- UI/UX plan for the frontend written by the Designer.
+
+**Outputs:** [artifacts/yuno/architect/02-implementation-plan/IMPLEMENTATION-PLAN.md](artifacts/yuno/architect/02-implementation-plan/IMPLEMENTATION-PLAN.md), [artifacts/yuno/designer/01-ui-ux/UI-UX-PLAN.md](artifacts/yuno/designer/01-ui-ux/UI-UX-PLAN.md)
+
+---
+
+## [009] System design diagrams drawn
+
+**Time:** 2026-09-29 16:33 CEST · **Phase:** Design
+
+**Summary:** Drew system design images to give a clearer visual picture of the whole system.
+
+**Details:**
+- Created visual diagrams of the full system design.
+- Done by a team: Architect, Engineer, and a front-end engineer/designer.
+
+---
