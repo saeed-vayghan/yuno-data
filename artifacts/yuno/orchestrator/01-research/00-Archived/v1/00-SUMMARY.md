@@ -1,6 +1,6 @@
 # v1 Summary: CasaMarket Settlement Discrepancies
 
-**Source of truth:** [scenario.md](../../../architect/00-scenario/scenario.md).
+**Source of truth:** [scenario.md](../../../../architect/00-scenario/scenario.md).
 **Frame:** lean local build (one command) + documented AWS scale path.
 Each brief is an Architect vs Engineer debate.
 

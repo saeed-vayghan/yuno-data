@@ -39,7 +39,7 @@
 - Collected information on the CasaMarket scenario with the `mitra-architect` agent.
 - Wrote down the scenario and a playbook for the work.
 
-**Outputs:** [artifacts/yuno/architect/00-scenario/scenario.md](artifacts/yuno/architect/00-scenario/scenario.md), [artifacts/yuno/architect/01-playbook/PLAYBOOK.md](artifacts/yuno/architect/01-playbook/PLAYBOOK.md)
+**Outputs:** [artifacts/yuno/architect/00-scenario/scenario.md](../../architect/00-scenario/scenario.md), [artifacts/yuno/architect/01-playbook/PLAYBOOK.md](../../architect/01-playbook/PLAYBOOK.md)
 
 ---
 
@@ -55,5 +55,32 @@
 - Wrote the research down as a set of topic documents.
 
 **Outputs:** [artifacts/yuno/orchestrator/01-research/](artifacts/yuno/orchestrator/01-research/)
+
+---
+
+## [005] ADR and requirements reviewed in judgement session
+
+**Time:** 2026-09-29 16:06 CEST · **Phase:** Review
+
+**Summary:** Ran a judgement session with the Architect and Engineer agents to check that the system is ready for solid planning.
+
+**Details:**
+- The Architect and Engineer agents reviewed the ADR together.
+- They also reviewed the requirements.
+- Goal: confirm the design and requirements are strong enough to start planning.
+
+**Next:** Solid planning.
+
+---
+
+## [006] Quality check of decisions
+
+**Time:** 2026-09-29 16:16 CEST · **Phase:** Review
+
+**Summary:** Ran one review round to check the quality of the decisions made so far.
+
+**Details:**
+- Held a single review session.
+- Focus: the quality of the project's decisions.
 
 ---

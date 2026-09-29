@@ -1,6 +1,6 @@
 # v2 Summary: Final Picks (CasaMarket)
 
-**Source of truth:** [scenario.md](../../../architect/00-scenario/scenario.md).
+**Source of truth:** [scenario.md](../../../../architect/00-scenario/scenario.md).
 **Frame:** lean local build (one command) + documented AWS scale path.
 Full stack: [01 reference stack](01-discrepancy-analysis-system.md).
 
