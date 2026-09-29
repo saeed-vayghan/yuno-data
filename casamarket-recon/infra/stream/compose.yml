@@ -1,1 +1,86 @@
-services: {}
+# Local streaming path (off by default): `make stream-up` = docker compose --profile stream up -d --build
+# redpanda jobmanager taskmanager (name the services: a bare `up` also starts the default `recon` app).
+# Redpanda (Kafka API, localhost:19092) + Flink 1.20 session cluster (UI localhost:8081).
+# Memory: Docker has ~2 GB; caps below total ~2.0 GB, real use ~1.3-1.5 GB. Paths are relative to this file.
+x-flink: &flink
+  profiles: [stream]
+  build: {context: ., dockerfile: flink.Dockerfile}
+  image: casarecon-flink:dev
+  volumes:
+    - ../../data/raw:/data/raw:ro                  # fx_rates_daily.csv (FX table)
+    - ../../dbt/seeds:/data/seeds:ro               # currency_exponents.csv
+    - ../../data/lake/stream:/data/lake/stream     # sink: matched/*.csv
+    - ./sql:/opt/sql:ro
+
+x-flink-conf: &flink-conf |
+  jobmanager.rpc.address: jobmanager
+  rest.address: jobmanager
+  parallelism.default: 1
+  taskmanager.numberOfTaskSlots: 1
+  jobmanager.memory.process.size: 512m
+  jobmanager.memory.jvm-metaspace.size: 128m
+  jobmanager.memory.jvm-overhead.min: 64m
+  jobmanager.memory.off-heap.size: 64m
+  taskmanager.memory.process.size: 768m
+  taskmanager.memory.jvm-metaspace.size: 128m
+  taskmanager.memory.jvm-overhead.min: 96m
+  taskmanager.memory.framework.heap.size: 64m
+  taskmanager.memory.framework.off-heap.size: 64m
+  taskmanager.memory.network.min: 32m
+  taskmanager.memory.network.max: 32m
+  taskmanager.memory.managed.size: 64m
+
+services:
+  redpanda:
+    profiles: [stream]
+    image: redpandadata/redpanda:v24.3.18
+    command:
+      - redpanda start
+      - --mode dev-container
+      - --smp 1
+      - --memory 400M
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://redpanda:9092,external://localhost:19092
+    ports: ["19092:19092"]
+    mem_limit: 600m
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -Eq 'Healthy:.+true'"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redpanda-init:                                    # one-shot: create the topics (idempotent)
+    profiles: [stream]
+    image: redpandadata/redpanda:v24.3.18
+    depends_on: {redpanda: {condition: service_healthy}}
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - rpk topic create auths settlements large_discrepancies -p 1 -X brokers=redpanda:9092;
+        rpk topic list -X brokers=redpanda:9092
+    mem_limit: 100m
+
+  jobmanager:
+    <<: *flink
+    command: jobmanager
+    ports: ["${FLINK_UI_PORT:-8081}:8081"]            # FLINK_UI_PORT if 8081 is taken
+    environment: {FLINK_PROPERTIES: *flink-conf}
+    mem_limit: 600m
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8081/overview"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  taskmanager:
+    <<: *flink
+    command: taskmanager
+    depends_on: {jobmanager: {condition: service_healthy}}
+    environment: {FLINK_PROPERTIES: *flink-conf}
+    mem_limit: 850m
+
+  sql-client:                                       # one-shot: `docker compose run --rm sql-client` (make stream-job)
+    <<: *flink
+    profiles: [stream-job]
+    command: bin/sql-client.sh -f /opt/sql/match.sql
+    environment: {FLINK_PROPERTIES: *flink-conf, JVM_ARGS: "-Xmx192m"}
+    mem_limit: 350m
