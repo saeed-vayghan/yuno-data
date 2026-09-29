@@ -13,7 +13,7 @@
 
 ### Part A (Core)
 
-1. **Test fixture** `tests/conftest.py`: a session fixture that runs generate (500 rows, seed 42) + build into a `tmp_path` DB, sets `CASARECON_DB` (and raw/reports dirs) to that temp location, and yields the path. All core/CLI/alert tests use it. Never touch `data/casarecon.duckdb` from tests.
+1. **Test fixture** `tests/conftest.py`: a session fixture that runs generate (500 rows, seed 42) + build into a `tmp_path` DB, sets `CASARECON_DB`, `CASARECON_RAW_DIR` and `CASARECON_REPORTS_DIR` to that temp location, and yields the path. All core/CLI/alert tests use it. Never touch `data/casarecon.duckdb` from tests.
 
 2. **Run path 1:** `make clean && make all` (full 135k run).
 
@@ -79,7 +79,7 @@ Done "reproducibility" · Tech 15 (3 run paths from a fresh clone, idempotent re
 ## Pitfalls
 - **Byte-stable outputs:** no timestamps in `findings.json`, `alerts.jsonl` or the generator CSVs; timestamps only go in `run_manifest.json` (not hashed). PNGs are not byte-stable; never hash them.
 - **Row order:** DuckDB with 4 threads returns rows in any order unless you `ORDER BY`.
-- **Docker + Streamlit address:** `.streamlit/config.toml` sets `address = "localhost"` (UI plan); inside a container that makes the app unreachable. Always pass `--host 0.0.0.0` in Docker only.
+- **Docker + Streamlit address:** `.streamlit/config.toml` sets `address = "localhost"` (UI plan); inside a container that makes the app unreachable. The one fix: the Dockerfile `CMD` passes `recon dashboard --host 0.0.0.0` (a CLI flag beats `config.toml`). Do not set `STREAMLIT_SERVER_ADDRESS` or edit `config.toml`.
 - **Non-root user** needs write access to `/app/dbt/target`, `/app/dbt/logs`, `/app/data`, `/app/reports` (`chown -R app /app`). Host-mounted volumes may need `user: "${UID}:${GID}"` on Linux.
 - **kaleido/Chrome** is usually missing in `python:3.12-slim`: figures fall back to HTML; the committed PNGs come from your own run.
 - `uv sync --frozen` fails if `uv.lock` is stale: rerun `uv lock` locally and commit.

@@ -33,9 +33,9 @@ Note: when `st.navigation` is used, Streamlit ignores the automatic `pages/` fol
 - `recon dashboard` runs:
   `streamlit run src/casarecon/dashboard/app.py --server.port 8501 --server.address localhost`
 - Makefile: `app: ; uv run recon dashboard`
-- Allow an override for Docker: `recon dashboard --host 0.0.0.0` (or env `STREAMLIT_SERVER_ADDRESS=0.0.0.0` in `docker-compose.yml`). Inside a container, `localhost` is not reachable from the host.
+- Docker override (one fix, owned by engineer file 10): the Dockerfile `CMD` runs `recon dashboard --host 0.0.0.0`. The CLI flag beats `config.toml`, so `config.toml` keeps `address = "localhost"`. No `STREAMLIT_SERVER_ADDRESS` env.
 
-**Decision (bind address):** 🏛️ Jamshid: bind to `localhost` by default (no auth, private data). 🎨 Mani: Docker users will see a dead page. → Default `localhost`; Docker compose sets `0.0.0.0` via env. Tell the engineer (file 10).
+**Decision (bind address):** 🏛️ Jamshid: bind to `localhost` by default (no auth, private data). 🎨 Mani: Docker users will see a dead page. → Default `localhost`; only the Docker `CMD` passes `--host 0.0.0.0` (engineer file 10).
 
 ### 3. `.streamlit/config.toml`
 Copy it from UI-UX-PLAN "Theme" as is: light base, `primaryColor = "#0072B2"`, `headless = true`, `gatherUsageStats = false`, `toolbarMode = "minimal"`, `showErrorDetails = false`. No custom CSS.
@@ -52,7 +52,7 @@ CATEGORY_ORDER = ["exact", "rounding", "fx_tolerance", "meaningful", "large"]
 PSP_COLORS = {"PSP_A": "#0072B2", "PSP_B": "#E69F00", "PSP_C": "#009E73",
               "PSP_D": "#CC79A7", "PSP_E": "#56B4E9"}
 SEVERITY = {"SEV2": ("#D55E00", "▲ SEV2 · same day"), "SEV3": ("#E69F00", "● SEV3 · weekly"),
-            "Info": ("#0072B2", "ℹ Info")}
+            "INFO": ("#0072B2", "ℹ Info")}   # keys = severity values in alerts.jsonl
 RESOLVED = ("#009E73", "✓ Resolved")
 UNDER, OVER = "#D55E00", "#0072B2"
 LOW_SAMPLE_OPACITY = 0.4

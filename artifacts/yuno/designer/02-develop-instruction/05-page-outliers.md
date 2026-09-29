@@ -6,13 +6,13 @@
 
 ## Inputs
 - Files 01–02.
-- Core: `query_transactions(filters, min_usd, limit)`, `outlier_summary(filters, min_usd)`, `transaction_detail(txn_id)`, `similar_count(txn_id)`.
+- Core: `query_transactions(filters, min_usd, limit)`, `outlier_summary(filters, min_usd)` (→ `n, gross_under_usd, gross_over_usd`), `transaction_detail(transaction_id)`, `similar_count(transaction_id)`.
 - Engineer: `recon query --min-usd 50 --format csv` (same function; used by test 5).
 
 ## Rules
 - "Discrepancy" here = **discrepancy after FX** = settled minus expected settle (FX move removed), in **USD** at the auth-day rate.
 - Filter is **strictly greater**: `abs_residual_usd > min_usd`. Default `min_usd = 50`.
-- Every row over $50 is `large` by rule (≥ $20), so this page reads `mart_outliers`. `min_usd = 0` shows all `large` rows.
+- The page calls `query_transactions(Filters(..., category=("large",)), min_usd)` and `outlier_summary` with the same args (engineer "Frontend rules"). Every row over $50 is `large` anyway (≥ $20), so the rows equal `recon query --min-usd 50`; `min_usd = 0` shows all `large` rows.
 - Customer IDs arrive masked from core (`cus_••••7f3a`). `transaction_id` stays whole (PSP disputes need it).
 
 ## Wireframe
@@ -48,7 +48,7 @@
 
 3. Page filters: size tier, cross-border, cause (same widgets as Drill-down; share one helper). Caption line: "ⓘ Discrepancy = settled minus expected settle (FX move removed), in USD."
 
-4. **Summary line:** `s = outlier_summary(f, min_usd)` → "1,284 transactions · $148,210 under · $3,020 over".
+4. **Summary line:** `s = outlier_summary(f, min_usd)` → `n`, `gross_under_usd`, `gross_over_usd` → "1,284 transactions · $148,210 under · $3,020 over".
 
 5. **Table:**
    ```python
@@ -59,11 +59,11 @@
    | Column label | From | Format |
    |---|---|---|
    | Transaction | `transaction_id` | text, whole |
-   | Auth date | `auth_ts` | `YYYY-MM-DD` |
+   | Auth date | `auth_date` | `YYYY-MM-DD` |
    | PSP · Country | `psp`, `country` | text |
    | Discrepancy after FX (USD) | `residual_usd` | NumberColumn `$%.2f`; sign kept; "under/over" in a text column next to it |
-   | Raw difference | `diff_local` + `currency` + `currency_exponent` | `CLP −58,000` (text; for reading only) |
-   | Customer | `customer_id` (masked) | text |
+   | Raw difference | `diff_local` + `currency` + `exponent` | `CLP −58,000` (text; for reading only) |
+   | Customer | `customer` (masked by core) | text |
    | Why flagged | `why_flagged` | text from core |
    | Likely cause | `likely_cause` | text |
    | Lag (days) | `settle_lag_days` | integer |
@@ -74,7 +74,7 @@
 
 7. **Detail panel:** if `ev.selection.rows` is empty → `st.caption("Select a row to see why it was flagged.")`. Else:
    - `d = transaction_detail(txn_id)`, inside `st.container(border=True)`.
-   - Show authorized / expected / settled (local + USD), FX move, lag, weekend, items, risk score, why flagged, likely cause + `cause_note`.
+   - Show authorized / expected / settled (local + USD), FX move, lag, weekend, items, risk score, why flagged, likely cause + its one-line label from the cause table in file 06 (UI text, not core).
    - `sim = similar_count(txn_id)` → "Similar rows: 142 in PSP_D · CL · psp_rounding" + button "See similar rows →" → `set_handoff(psp=…, country=…, cause=…)` + `st.switch_page(PAGES["drill_down"])`.
    - `st.code(txn_id)` gives a one-click copy.
 

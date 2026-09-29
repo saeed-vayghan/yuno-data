@@ -57,7 +57,7 @@
    - The data window is one quarter (3 months), so window $ = `usd_quarter`.
    - One line: total gross under-settled USD "compared with $127k (estimate; synthetic data)".
 
-8. **Worst week (for FINDINGS):** `core.worst_week("last")`: ISO week by auth date, week belongs to the month of its Thursday, "last" = last full calendar month in the data, ranked by `net_usd`, `n < 30` greyed/ranked last.
+8. **Worst week (for FINDINGS):** `core.worst_week("last")`: ISO week by auth date, week belongs to the month of its Thursday, "last" = last full calendar month in the data, ranked by `net_usd` desc, `n < 30` greyed/ranked last, ties broken by `psp` then `auth_week` (contract row 5).
 
 9. **`analysis/findings.py` → `reports/findings.json`:** shape `{"as_of", "summary", "findings": [...], "not_significant": [...]}`. `findings` is ranked by `usd_quarter` desc and holds only q < 0.05. One item:
    ```json
@@ -101,4 +101,4 @@ FR2 (all 5 questions, "immediately understand which factors are driving") · Don
 ## Hand-off
 - File 07 renders FINDINGS.md / RECOMMENDATIONS.md only from `findings.json` + CSVs.
 - File 08 reuses `stats.bh`, `stats.wilson`.
-- Frontend: `load_findings()` returns `findings.json` items; figures are in `reports/figures/`.
+- Frontend: `load_findings()` returns `{"markdown", "items"}` (items = `findings.json["findings"]`); figures are in `reports/figures/`.

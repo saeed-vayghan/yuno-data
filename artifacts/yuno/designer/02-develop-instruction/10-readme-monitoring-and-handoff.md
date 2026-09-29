@@ -6,9 +6,9 @@
 
 ## Inputs
 - Working `make app`; pages 03 and 05 at least.
-- README from the engineer (S4.2) with a "Monitoring" heading (11 sections).
+- README from the engineer (file 11 part A) with a "Monitoring" heading (11 sections).
 - Screenshots from file 09.
-- Your list of added core functions and wrong assumptions (A1–A6, file 02).
+- Your list of any Stretch core functions you added (owner rule, file 00).
 
 ## Steps
 
@@ -74,10 +74,7 @@ No data yet? The app says "Run `make all` first".
 | Item | Ask |
 |---|---|
 | Core functions added by UI | list names + tests, for review |
-| Assumptions A1–A6 (file 02) | confirm or tell us what changed |
-| `alerts.jsonl` fields | `psp`, `country` split; `INSUFFICIENT_DATA` status |
-| Docker | set `STREAMLIT_SERVER_ADDRESS=0.0.0.0` in compose (config binds localhost) |
-| Tie-break in `worst_week` | net USD desc, then PSP name, same in CLI |
+| Contract gaps found | any column a page needed that the engineer contract lacks (add it there, not in the UI) |
 | Cuts made | which items from the cut order (file 00) were skipped |
 
 ## Done when
@@ -94,4 +91,4 @@ Deliverable 1 (README / run instructions) and Deliverable 5 (dashboard); DoD "we
 - README commands that differ from the Makefile (`make dashboard` vs `make app`): use `make app`.
 
 ## Hand-off
-UI work is done. The engineer takes the hand-off note into the final fresh-clone walk-through (Implementation Plan S6.3).
+UI work is done. The engineer takes the hand-off note into step 17 (README Monitoring + final DoD walk, engineer file 11 part B) and the fresh-clone walk (engineer file 10 step 10).

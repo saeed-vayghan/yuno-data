@@ -7,25 +7,19 @@
 ## Inputs
 - Files 01–02.
 - Core: `load_alerts()` (reads `reports/alerts.jsonl`), `status()` (last closed week).
-- Engineer (S5.1): `recon alerts` → `reports/alerts.jsonl` + `reports/alerts.md`. The page never runs the evaluator; it only reads its output.
+- Engineer file 08: `recon alerts` → `reports/alerts.jsonl` + `reports/alerts.md`. The page never runs the evaluator; it only reads its output.
 - Research `07-alerting-metrics.md`: the 6 rules and severities.
 
 ## Facts (from FINAL-SOLUTION §6 and research 07)
 - Evaluated on the **last closed week**. Status vs the previous closed week, no state file:
   NEW = fires now, not before · ONGOING = both · RESOLVED = before, not now.
-- n < 50 → "insufficient data" (Info), never an alert.
+- n < 50 → one row with `status = "INSUFFICIENT_DATA"`, `severity = "INFO"`; never an alert.
 - 6 rules: peer, change, money leak, large-rows summary, pending aging, settle lag.
 - Severities used here: SEV2 (same day), SEV3 (weekly review), Info (report only). SEV1 is prod-only; not shown.
 - Slack is optional and off. The page needs no Slack; do not add a "send" button.
 
-## Assumed record (A5 in file 02; reconcile with the engineer)
-```json
-{"rule_id": "peer", "segment": "PSP_B|AR", "psp": "PSP_B", "country": "AR",
- "period": "2026-W25", "severity": "SEV2", "status": "NEW",
- "message": "PSP_B flags 17.9% of AR rows vs 12.1% for other PSPs (+5.8 pts).",
- "owner": "PSP ops", "n": 812, "value": 0.179, "threshold": 0.141}
-```
-"Insufficient data" rows: `status = "INSUFFICIENT_DATA"`, `severity = "Info"`.
+## Record
+Exactly the `load_alerts()` columns in the [engineer contract](../../engineer/02-develop-instruction/02-config-and-core.md#core-api-contract) (row 22) and the JSONL example in [engineer 08](../../engineer/02-develop-instruction/08-alerts.md): `period, rule_id, segment, key, psp, country, severity, status, owner, n, value, threshold, message`. `psp` / `country` are null when the segment has none. Statuses: `NEW, ONGOING, RESOLVED, INSUFFICIENT_DATA`. Severities: `SEV2, SEV3, INFO`.
 
 ## Wireframe
 
@@ -60,7 +54,7 @@
 
 4. **Filters:** `st.multiselect` for severity, status (NEW / ONGOING / RESOLVED), rule. Defaults empty = all.
 
-5. **Table** (`st.dataframe`), active rows only (not `INSUFFICIENT_DATA`), sorted SEV2 → SEV3 → Info, then NEW → ONGOING → RESOLVED:
+5. **Table** (`st.dataframe`), active rows only (not `INSUFFICIENT_DATA`), sorted SEV2 → SEV3 → INFO, then NEW → ONGOING → RESOLVED:
    | Column | Content |
    |---|---|
    | Severity | badge text: `▲ SEV2 · same day` / `● SEV3 · weekly` / `ℹ Info` / `✓ Resolved` |
@@ -72,7 +66,7 @@
    | n | integer |
    - Optional colour: a pandas `Styler` on the Severity column only, background from `theme.SEVERITY`, dark text on orange, white on vermilion/blue. The word is always there.
 
-6. **View segment:** `st.selectbox` of segments with a `psp` (and/or `country`) + button → `set_handoff(psp=…, country=…)` + `st.switch_page(PAGES["drill_down"])`. Row-select on the table is also fine if quicker.
+6. **View segment:** `st.selectbox` of rows with a non-null `psp` and/or `country` + button → `set_handoff(psp=…, country=…)` + `st.switch_page(PAGES["drill_down"])`. Row-select on the table is also fine if quicker.
 
 7. **Insufficient data:** `st.expander(f"Insufficient data ({k})", expanded=False)` → small table: rule, segment, n, "needs 50 rows per week".
 

@@ -30,7 +30,7 @@
 │ Worst PSP week · Month [ 2026-06 ▾ ]                                     │
 │ PSP_B · W24 (Jun 8–14) · Net loss $4,210 · Gross under $4,900            │
 │ Flag rate 21.3% · n = 812            [Open PSP_B · W24 in Drill-down →]  │
-│ Next: PSP_C W25 $3,050 · PSP_D W23 $2,870 · ░PSP_E W22 $900 low sample░  │
+│ Next: PSP_C W25 $3,050 · PSP_D W23 $2,870 · ░PSP_E W26 $900 low sample░  │
 ├──────────────────────────────────────────────────────────────────────────┤
 │ Weekly flag rate (%)       ( Portfolio | By PSP )                         │
 │  line chart; open weeks dashed + "not closed yet"                        │
@@ -49,13 +49,13 @@
 
 2. **KPI row** (`st.columns(4)`):
    ```python
-   k = data.get_kpis(f, week="last_closed")      # dict with "prev"
+   k = data.get_kpis(f, week="last_closed")      # has prev_week, delta_rate_pts, delta_net_usd, delta_n_large
    st.metric("Flag rate", fmt.rate(k["flag_rate"]),
-             delta=f"{(k['flag_rate']-k['prev']['flag_rate'])*100:+.1f} pts",
+             delta=fmt.delta_pts(k["delta_rate_pts"]),
              delta_color="inverse", help="Share of settled rows with a meaningful or large discrepancy after FX.")
    ```
-   - Net loss: `fmt.usd_compact(k["net_usd"])`, delta in $, `delta_color="inverse"` (more loss = red + ▲).
-   - Large rows: count, delta as integer.
+   - Net loss: `fmt.usd_compact(k["net_usd"])`, delta `k["delta_net_usd"]` in $, `delta_color="inverse"` (more loss = red + ▲).
+   - Large rows: `k["n_large"]`, delta `k["delta_n_large"]` as integer.
    - Open alerts: count of `load_alerts()` rows with status NEW or ONGOING (not Info), "(1 SEV2)" in the value; `st.page_link(PAGES["alerts"], label="→ Alerts")`. If the file is missing: value "—", caption "Run `recon alerts`".
    - Every metric has `help=` with a one-sentence definition.
 
@@ -74,13 +74,13 @@
 4. **Weekly flag-rate trend** (Plotly line):
    - `st.segmented_control` (or `st.radio(horizontal=True)`) "Portfolio | By PSP".
    - x = `week_start`, y = `rate`. Closed weeks solid; `is_closed == False` weeks dashed/lighter with annotation "not closed yet".
-   - By PSP: PSP colours from `theme.PSP_COLORS` + direct labels at line ends (not only a legend).
+   - By PSP: one line per `series` value, PSP colours from `theme.PSP_COLORS` + direct labels at line ends (not only a legend).
    - Title "Weekly flag rate (%)". Caption under it: one line takeaway from data, e.g. "Highest closed week: W24 at 16.1%."
 
 5. **Weekly net loss** (Plotly bar): y = `net_usd`, vermilion bars, same open-week style. Separate chart; no dual axis.
 
 6. **Week-over-week table** (`st.dataframe`):
-   - Columns: PSP, Country, Last week, This week, Change (pts) with ▲/▼ text, n.
+   - Columns: PSP, Country, `rate_prev` (header = `week_prev`, e.g. W24), `rate_last` (header = `week_last`, e.g. W25), Change (`delta_pts`) with ▲/▼ text, `n_last`.
    - Sorted by `delta_pts` desc. Rows with `low_sample` get "low sample" in a note column.
    - `column_config.NumberColumn` for rates (format `%.1f%%` on ×100 values) so sort works.
 

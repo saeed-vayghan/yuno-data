@@ -53,22 +53,44 @@ Files are numbered by topic. **Work in this order** (some files are done in part
 | 11 | 11 part A: README | 10 | **135** | Docs 15–20 |
 | **✅ CORE CHECKPOINT** | FR1 + FR2 + docs done. **Commit now**, including `reports/FINDINGS.md`, `reports/findings.json`, `reports/analysis/*.csv`, `reports/figures/*`. | | **135** | |
 | 12 | 09 part B: `recon worst-week`, `recon query` (both brief questions) | 10 | 145 | Stretch 20–30 |
-| 13 | 07 part B: RECOMMENDATIONS.md | 10 | 155 | Stretch |
-| 14 | 08 alerts | 20 | 175 | Stretch |
-| 15 | 02 part C: dashboard core functions (Stretch rows of the contract) | 15 | 190 | Stretch |
+| 13 | 02 part C: dashboard core functions (Stretch rows of the contract) | 15 | 160 | Stretch |
+| 14 | 07 part B: RECOMMENDATIONS.md + `recommendations.json` | 10 | 170 | Stretch |
+| 15 | 08 alerts | 20 | 190 | Stretch |
 | 16 | 10 part B: Docker, CI | 15 | 205 | (not in brief) |
-| 17 | 11 part B: README Monitoring + final DoD walk | 5 | 210 | |
+| 17 | 11 part B: README Monitoring + final DoD walk (after the UI lane ends) | 5 | 210 | |
 
-> **Decision (budget):** ⚡ Kaveh: the plan is 135 min core vs the brief's ~100–115; stretch + packaging add ~75. 🏛️ Jamshid: accepted; the core checkpoint is the hard line. RECOMMENDATIONS moves before alerts (FR4 is cheap and scored; IMPLEMENTATION-PLAN had it after).
+> **Decision (budget):** ⚡ Kaveh: the plan is 135 min core vs the brief's ~100–115; stretch + packaging add ~75. 🏛️ Jamshid: accepted; the core checkpoint is the hard line. RECOMMENDATIONS moves before alerts (FR4 is cheap and scored). 🎨 Mani: part C moves up to step 13 so the UI lane never waits for it.
 
-**Cut order** (if time runs out after the checkpoint, cut from the top):
-1. CI workflow.
-2. Dashboard core functions not used by Overview + Outliers (`category_mix`, `filter_options`, `similar_count`, `load_findings`).
-3. Sensitivity table (1/2/3%).
-4. Slack hook.
-5. HDBSCAN (never start it unless everything else is done).
+## Combined timeline (engineer + dashboard) — same table in [designer 00](../../designer/02-develop-instruction/00-README.md)
 
-**Never cut:** dbt tests, validation gate, FINDINGS.md, README, `make all`, idempotent rerun.
+| t (min) | Engineer lane | UI lane (frontend dev) | Tier |
+|---|---|---|---|
+| 0–135 | Steps 1–11 above → **✅ CORE CHECKPOINT** | — (not started) | Core |
+| 135–145 | 12 · CLI brief questions | UI 01 shell (12) | Stretch |
+| 145–160 | 13 · core part C (Stretch rows) | UI 02 wrappers + guard (10) → 157 | Stretch |
+| 160–170 | 14 · RECOMMENDATIONS | UI 05 Outliers (12) → 169 | Stretch |
+| 170–190 | 15 · alerts | UI 03 Overview (15), UI 04 table (6) → 190 | Stretch |
+| 190–205 | 16 · Docker, CI | UI 10 draft (3), UI 09 core tests (7) → **200 = UI core path done** | Stretch / packaging |
+| 205–240 | review UI's core functions (if any) | UI extras: 07 Alerts (8), 06 Root causes (10), 04 charts (6), 08 polish (8), 09 rest (5), 10 final (3) | Stretch |
+| 240–245 | 17 · README Monitoring + final DoD walk | — | Final |
+
+- Two builders: ~245 min wall clock. One builder: ~210 + ~110 = ~320 min; stop after step 14 (CLI + recommendations already meet the brief's stretch line), then add the UI core path if time is left.
+- The brief says ~2 h. Only the core (0–135) is required; everything after the checkpoint is optional and follows the cut order.
+
+**Cut order** (after the checkpoint, cut from the top; same list in designer 00):
+1. CI workflow (E 10B).
+2. Scripted screenshots → 2 manual ones (UI 09).
+3. Drill-down charts + `category_mix` (UI 04, E 02C).
+4. Root-causes heatmap + excess-loss table (UI 06).
+5. Manual a11y passes: CVD simulator, 200% zoom (UI 08).
+6. Sensitivity table 1/2/3% (E 06).
+7. Slack hook (E 08).
+8. Alerts page → Overview KPI links to `reports/alerts.md` (UI 07).
+9. Root causes page + `load_findings`, `load_recommendations` → README links RECOMMENDATIONS.md (UI 06, E 02C).
+10. Drill-down page → worst-week card links to Outliers with PSP + week set (UI 04).
+11. HDBSCAN: never start it unless everything else is done.
+
+**Never cut:** dbt tests, validation gate, FINDINGS.md, README, `make all`, idempotent rerun, `recon worst-week` / `recon query`. If the dashboard is started: Overview worst-week card, Outliers at `> 50` + CSV, data guard, masked IDs, UI tests 4 and 5, README "Monitoring", `make app`.
 
 ## Map: file → brief deliverable / Done item
 
@@ -87,6 +109,7 @@ Files are numbered by topic. **Work in this order** (some files are done in part
 | 11 | D1, D4 docs incl. assumptions | Done: "well-documented" | all |
 
 ## Hand-off to the frontend developer
-- They start **after the core checkpoint**.
-- They consume only `casarecon.core` (contract in [02](02-config-and-core.md#core-api-contract)). No SQL in pages.
+- They start **after the core checkpoint** (start gate: [designer 00](../../designer/02-develop-instruction/00-README.md)).
+- They consume only `casarecon.core` (contract in [02](02-config-and-core.md#core-api-contract)); it is the single source for core names, args and columns. No SQL in pages.
+- Owner rule: the engineer owns `core/` and writes the Stretch rows (step 13). If one is missing when a page needs it, the frontend dev may add it exactly as in the contract + one pytest; the engineer reviews.
 - They get a built DB at `data/casarecon.duckdb`, `reports/*.json|jsonl|md`, and a 500-row pytest fixture DB (file 10).

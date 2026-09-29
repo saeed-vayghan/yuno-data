@@ -5,48 +5,39 @@
 **Time box:** 10 min · **Tag:** Core
 
 ## Inputs
-- Engineer delivered (S3.1): `core/db.py` (`connect()` read-only, `DbBusy`), `core/queries.py` (`worst_week`, `query_transactions`, `segment_rates`, `cause_summary`, `psp_weekly`, `mask_id`), `core/paths.py` (`CASARECON_DB`).
-- IMPLEMENTATION-PLAN S5.3: list of extra read functions the UI needs.
-- UI-UX-PLAN: component → core function tables per page.
+- **The single source:** [engineer 02 · CORE API CONTRACT](../../engineer/02-develop-instruction/02-config-and-core.md#core-api-contract): names, args, return columns, keys and tiers (Core / Stretch), `Filters`, TXN_COLUMNS, the error table and the "Frontend rules". This file only says which rows each page uses. If this file and the contract disagree, the contract wins.
+- UI-UX-PLAN: component → function tables per page.
 
 ## Rule
 The dashboard reads data **only** through `casarecon.core`. No SQL, no `duckdb`, no `pandas.read_csv` of `data/raw` in `dashboard/`. The same functions serve `recon worst-week` and `recon query`, so CLI and UI agree.
 
-## Contract table
+## Which contract rows each page uses
 
-Status legend: **S3.1** = the engineer builds it before the gate · **S5.3** = added page by page (by the frontend dev if the engineer has not, with a pytest) · **ASSUMED** = our guess where the engineer contract is not final; reconcile in the judgment session.
+Row # = the row in the engineer contract. Tier is the engineer's: **Core** exists at the start gate; **Stretch** is written by the engineer in work-order step 13 (owner rule in [00](00-README.md)).
 
-| # | Core function | Args | Returns (key fields) | Reads | Used on | Status |
-|---|---|---|---|---|---|---|
-| 1 | `core.filters.Filters` | frozen dataclass; tuple fields, empty = all: `date_from, date_to, country, psp, tier, xb, weekday, category, cause` | hashable value passed to every query | — | all | ASSUMED (lives in core so the CLI can use it too) |
-| 2 | `core.paths.db_path()` | — | `Path` (honours `CASARECON_DB`) | env | data guard | ASSUMED name |
-| 3 | `core.db.DbBusy` | exception | raised when the file is locked by a build | — | all | S3.1 |
-| 4 | `status()` | — | dict: `as_of`, `last_closed_week` ("2026-W25"), `last_closed_start`, `last_closed_end`, `open_weeks` (list), `n_rows` | fct | banner (all) | S5.3 |
-| 5 | `filter_options()` | — | dict of lists: `country`, `psp`, `tier`, `category`, `cause`, `months` (full months only, "YYYY-MM"), `min_date`, `max_date` | fct | sidebar, page filters | S5.3 |
-| 6 | `kpis(filters, week=None)` | `week="last_closed"` or `None` (= filtered range) | dict: `n`, `n_flagged`, `flag_rate`, `net_usd`, `gross_under_usd`, `gross_over_usd`, `n_large`; plus `prev` (same keys, prior closed week) when `week` is set | `mart_psp_weekly` / fct | Overview, Drill-down | S5.3 |
-| 7 | `worst_week(month="last")` | `"last"` or `"YYYY-MM"` | DataFrame, ranked: `rank, psp, auth_week, week_start, week_end, week_month, n, n_flagged, rate, gross_under_usd, gross_over_usd, net_usd, low_sample`; low-sample rows ranked last | `mart_psp_weekly` | Overview card | S3.1 (return columns ASSUMED) |
-| 8 | `weekly_trend(filters, by="portfolio")` | `by` in `portfolio`, `psp` | DataFrame: `auth_week, week_start, psp` (if by psp), `n, n_flagged, rate, net_usd, gross_under_usd, is_closed, low_sample` | `mart_psp_weekly` | Overview | S5.3 |
-| 9 | `week_over_week(filters)` | — | DataFrame: `psp, country, rate_prev, rate_curr, delta_pts, n_prev, n_curr, low_sample`, sorted by `delta_pts` desc | `mart_psp_weekly` | Overview | S5.3 |
-| 10 | `segment_rates(dim, filters=None)` | `dim` in mart segment types (`country`, `psp`, `psp_country`, `amount_tier`, `weekday`, `cross_border`, `lag_bucket`…) | DataFrame: `segment_type, segment_value, n, n_flagged, rate, ci_low, ci_high, n_large, gross_under_usd, gross_over_usd, net_usd, mean_loss_usd, median_loss_usd, low_sample` | `mart_segment_rates` (no filters) / fct (filtered) | Drill-down, Root causes | S3.1 is `segment_rates(type)`; `filters` arg + `ci_low/ci_high` ASSUMED |
-| 11 | `category_mix(filters)` | — | DataFrame: `auth_week, category, n, share` | fct | Drill-down | S5.3 |
-| 12 | `query_transactions(filters, min_usd=None, limit=None)` | `min_usd` set → `mart_outliers` where `abs_residual_usd > min_usd`; `None` → settled rows of fct | DataFrame sorted by `abs_residual_usd` desc: `transaction_id, auth_ts, psp, country, currency, currency_exponent, is_cross_border, amount_tier, customer_id` (already masked), `authorized_amount, expected_settled, settled_amount, diff_local` (int minor units), `residual_usd, abs_residual_usd, residual_pct, direction, category, likely_cause, why_flagged, settle_lag_days` | `mart_outliers` / fct | Outliers, Drill-down, both CSVs | S3.1 (column list ASSUMED) |
-| 13 | `outlier_summary(filters, min_usd)` | — | dict: `n, under_usd, over_usd` | `mart_outliers` | Outliers | S5.3 |
-| 14 | `transaction_detail(txn_id)` | `str` | dict: row fields of #12 + `amount_usd, settled_usd, fx_move_pct, is_weekend, item_count, risk_score, cause_note` | fct | Outliers detail | S5.3 |
-| 15 | `similar_count(txn_id)` | `str` | dict: `n, psp, country, likely_cause` | fct | Outliers detail | S5.3 |
-| 16 | `cause_summary(filters=None)` | — | DataFrame: `likely_cause, n, gross_under_usd, gross_over_usd, net_usd, share_of_loss` | `mart_cause_summary` | Root causes | S3.1 |
-| 17 | `excess_loss(top=5)` | — | DataFrame: `segment, n, rate, peer_rate, lift, q, excess_usd, median_loss_usd` | `mart_segment_rates` + `findings.json` | Root causes | S5.3 |
-| 18 | `load_findings()` | — | `(items, markdown)`: `items` = list of dicts from `findings.json` (`id, headline, segment, n, rate, ci, peer_rate, lift, q, usd_quarter, share_of_loss, likely_cause`); `markdown` = FINDINGS.md text. `None` if missing | `reports/` | Root causes | S5.3 |
-| 19 | `load_recommendations()` | — | list of dicts `rank, id, action, evidence, usd_impact, owner, implementation`; `None` if missing | `reports/RECOMMENDATIONS.md` | Root causes | S5.3 (shape ASSUMED) |
-| 20 | `load_alerts()` | — | DataFrame from `alerts.jsonl`: `rule_id, segment, psp, country, period, severity, status, message, owner, n, value, threshold`; `None` if the file is missing | `reports/alerts.jsonl` | Overview KPI, Alerts | S5.3 (fields ASSUMED) |
-| 21 | `mask_id(customer_id)` | `str` | `cus_••••7f3a` (last 4 kept) | — | called inside core only | S3.1 |
+| Row | Function (as in the contract) | Tier | Used on |
+|---|---|---|---|
+| 1–2 | `connect()` (inside core only), `db_version()` | Core | `data.py` cache key |
+| 3 | `status()` → `as_of`, `last_closed_week`, `last_closed_start/end`, `open_weeks`, `last_full_month`, `months`, `n_rows` | Core | as-of banner (all pages), Alerts header |
+| 5 | `worst_week(month="last")` | Core | Overview card |
+| 6 | `query_transactions(filters, min_usd, limit)` → TXN_COLUMNS | Core | Outliers, Drill-down, both CSVs |
+| 7 | `segment_rates(dim, filters)` (`dim` e.g. `country, psp, psp_country, amount_tier, weekday, cross_border, lag_bucket`) | Core | Drill-down chart, Root-causes heatmap |
+| 8 | `cause_summary(filters)` | Core | Root causes |
+| 9 | `excess_loss(top=5)` → `psp, country, n, rate, peer_rate, lift, excess_usd, mean_loss_usd, median_loss_usd` | Core | Root causes |
+| 11–12 | `mask_id` (core only), `exponent`, `to_major` | Core | formatters |
+| 13 | `kpis(filters, week)` → `n, n_flagged, n_large, flag_rate, net_usd, gross_under_usd` + `prev_week, delta_rate_pts, delta_net_usd, delta_n_large` when `week` is a week | Stretch | Overview (`week="last_closed"`), Drill-down (`week="all"`) |
+| 14 | `weekly_trend(filters, by)` → `series` = `"ALL"` or PSP | Stretch | Overview |
+| 15 | `week_over_week(filters)` → `week_prev, week_last, rate_prev, rate_last, delta_pts, n_prev, n_last, low_sample` | Stretch | Overview |
+| 16 | `category_mix(filters)` | Stretch | Drill-down chart |
+| 17 | `outlier_summary(filters, min_usd)` → `n, gross_under_usd, gross_over_usd` | Stretch | Outliers |
+| 18 | `transaction_detail(transaction_id)` | Stretch | Outliers detail |
+| 19 | `similar_count(transaction_id)` | Stretch | Outliers detail |
+| 20 | `filter_options()` → lists + `months` (full months), `min_date`, `max_date` | Stretch | sidebar, page filters, URL check |
+| 22 | `load_alerts()` → incl. `psp`, `country`; `status` NEW/ONGOING/RESOLVED/INSUFFICIENT_DATA; `severity` SEV2/SEV3/INFO | Stretch | Overview KPI, Alerts |
+| 23 | `load_findings()` → `{"markdown", "items"}` | Stretch | Root causes |
+| 24 | `load_recommendations()` → `rank, action, evidence, owner, implementation, usd_quarter` (from `reports/recommendations.json`) | Stretch | Root causes |
 
-Assumptions to reconcile (short list, also in file 10):
-- A1: `Filters` lives in core (`core/filters.py`), not in `dashboard/`. Reason: core cannot import the dashboard, and the CLI builds the same object from its flags.
-- A2: `query_transactions` returns `customer_id` already masked and a `currency_exponent` column (joined from the seed). The UI never sees a raw ID and never hard-codes CLP = 0.
-- A3: `why_flagged` text ("> 5% and ≥ $20") is built in core (SQL or Python), not in the page.
-- A4: counts for "Showing 1,000 of N" come from `outlier_summary` (Outliers) and `kpis(filters)["n"]` (Drill-down), so the UI never loads 135k rows to count them.
-- A5: `alerts.jsonl` has `psp` and `country` as separate fields (for "View segment"), and "insufficient data" is a `status` value `INSUFFICIENT_DATA` with severity `Info`.
-- A6: `load_recommendations()` parses a fixed block per item in RECOMMENDATIONS.md. Fallback if parsing is not worth it: return the markdown string and the page renders it whole.
+Names you must use (from TXN_COLUMNS): `auth_date` (not `auth_ts`), `exponent` (not `currency_exponent`), `customer` (already masked; the full `customer_id` never leaves core). `Filters` lives in `core/filters.py` with fields `country, psp, tier, xb, weekday, category, cause, week, date_from, date_to`; the UI sends a week as `date_from`/`date_to` and leaves `week` unset. Outliers passes `Filters(category=("large",))`.
 
 **Decision (min_usd is an argument, not a Filters field):** 🎨 Mani wanted everything in `Filters`. 🏛️ Jamshid: `recon query --min-usd` maps 1:1 to `query_transactions(min_usd=…)`, keep that signature. → Separate argument.
 
@@ -56,26 +47,22 @@ Assumptions to reconcile (short list, also in file 10):
 
 ```python
 import streamlit as st
+from casarecon import core
 from casarecon.core import queries          # import the MODULE, so tests can monkeypatch it
-from casarecon.core.paths import db_path
 
-TTL = 600   # safety net; the real key is the DB file mtime
-
-def db_mtime() -> float: ...                 # db_path().stat().st_mtime; raises FileNotFoundError
-
-# Careful: a leading underscore (`_mtime`) tells Streamlit NOT to hash that arg.
-# The mtime must be hashed, so name it `mtime`.
-@st.cache_data(ttl=TTL, show_spinner="Loading…")
-def worst_week(month: str, mtime: float) -> pd.DataFrame:
+# Careful: a leading underscore (`_version`) tells Streamlit NOT to hash that arg.
+# The DB version must be hashed, so name it `version`. No TTL.
+@st.cache_data(show_spinner="Loading…")
+def worst_week(month: str, version: float) -> pd.DataFrame:
     return queries.worst_week(month)
 
 def get_worst_week(month: str) -> pd.DataFrame:
-    return worst_week(month, db_mtime())
+    return worst_week(month, core.db_version())
 ```
 
-- One wrapper per contract row. The cache key = function args (`Filters`, `min_usd`, `limit`, `month`…) + `mtime`. A rebuild changes `mtime`, so the cache refreshes on the next run.
+- One wrapper per contract row you use. Cache key = function args (`Filters`, `min_usd`, `limit`, `month`…) + `core.db_version()` (DB file mtime). A rebuild changes it, so the cache refreshes on the next run.
 - `Filters` must be hashable: frozen dataclass with tuple fields (no lists, no sets). If Streamlit cannot hash it, pass `filters.as_key()` (a tuple) and rebuild the object inside.
-- Report loaders (`load_alerts`, `load_findings`, `load_recommendations`) key on the report file's mtime instead.
+- Report loaders (`load_alerts`, `load_findings`, `load_recommendations`) are **not** cached (small files; read on each run). Same rule as the engineer's "Frontend rules".
 - Cache DataFrames only (small, pickle-safe). Never cache a connection.
 
 ### 2. Connection: short and read-only (engineer side, you just rely on it)
@@ -85,8 +72,8 @@ Each core function does `with connect() as con:` → `duckdb.connect(path, read_
 
 ```python
 def guarded(render: Callable[[], None]) -> None:
-    # FileNotFoundError (no DB)      → st.info("No data yet. Run `make all` first, then reload this page."); st.stop()
-    # queries.DbBusy / db.DbBusy     → st.warning("The data is being rebuilt. Retry in a minute."); st.button("Retry")
+    # core.DbMissing                 → st.info("No data yet. Run `make all` first, then reload this page."); st.stop()
+    # core.DbBusy                    → st.warning("The data is being rebuilt. Retry in a minute."); st.button("Retry")
     # any other Exception            → log traceback; st.error("Something went wrong loading this view. The details are in the terminal.")
 ```
 Every page ends with `guarded(render)`.
@@ -109,11 +96,11 @@ def week_label(iso: str, start: date, end: date) -> str: ...   # "W25 (Jun 15–
 - Never put a bare `$` next to a local amount.
 
 ### 5. Masking
-- Core masks. The UI only checks: any column named `customer_id` must match `^cus_••••.{4}$` (test 11 in file 09).
+- Core masks. The UI only checks: the `customer` column must match `^cus_••••.{4}$` (test 11 in file 09).
 - CSV download uses the same DataFrame, so it is masked too.
 
 ## Done when
-- [ ] `dashboard/data.py` has one cached wrapper per row you use, all keyed on `mtime`.
+- [ ] `dashboard/data.py` has one cached wrapper per DB-reading row you use, all keyed on `core.db_version()`; no TTL; report loaders uncached.
 - [ ] Deleting `data/casarecon.duckdb` → every page shows "Run `make all` first" (no traceback).
 - [ ] Running `make all` while the app is open → the app shows "Rebuilding" or fresh data after Retry; never a crash.
 - [ ] `grep -rn "duckdb\|read_csv\|SELECT" src/casarecon/dashboard` finds nothing.
@@ -123,10 +110,10 @@ def week_label(iso: str, start: date, end: date) -> str: ...   # "W25 (Jun 15–
 FR3 (shared core, CLI ↔ UI agree); Tech 15 ("no logic in UI", clean code); privacy (masked IDs); UI-UX build steps 2 and 3.
 
 ## Pitfalls
-- `_mtime` with an underscore is silently not hashed → stale data after a rebuild.
+- `_version` with an underscore is silently not hashed → stale data after a rebuild.
 - `from casarecon.core.queries import worst_week` in a page: tests cannot monkeypatch it. Import the module.
 - Formatting numbers into strings inside DataFrames breaks sort. Use `st.column_config.NumberColumn(format=…)`.
 - Loading the full fact table to count rows. Ask core for the count.
 
 ## Hand-off
-Wrappers + guard + formatters ready. Next: `05-page-outliers.md` (build order) or `03-page-overview.md` (reading order). Keep the list of any function you added to core and any assumption A1–A6 that turned out wrong.
+Wrappers + guard + formatters ready. Next: `05-page-outliers.md` (build order) or `03-page-overview.md` (reading order). Keep the list of any Stretch core function you added (owner rule, file 00).

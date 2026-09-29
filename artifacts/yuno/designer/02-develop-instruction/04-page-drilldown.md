@@ -6,7 +6,7 @@
 
 ## Inputs
 - Files 01–02. Global filters (dates, country, PSP) already in the sidebar.
-- Core: `kpis(filters)`, `segment_rates(dim, filters)`, `category_mix(filters)`, `query_transactions(filters, limit=1000)`, `filter_options()`.
+- Core: `kpis(filters, week="all")`, `segment_rates(dim, filters)`, `category_mix(filters)`, `query_transactions(filters, limit=1000)`, `filter_options()`.
 - Arrivals from: Overview card (PSP + week dates), Outliers "See similar rows" (PSP + country + cause), Alerts "View segment" (PSP + country), Root causes "Drill into cause" (cause).
 
 ## Wireframe
@@ -51,7 +51,7 @@
 
    **Decision (week handoff):** 🎨 Mani wanted a separate `week` filter. 🏛️ Jamshid: one more param to keep in sync. → A week arrives as the global date range (`week_start`–`week_end`). The active line shows it as "W24 (Jun 8–14)" when the range is exactly one ISO week.
 
-3. **Summary KPIs** (`kpis(f)`, no `week`): Rows, Flag rate, Net loss. Same `help=` texts as Overview.
+3. **Summary KPIs** (`kpis(f, week="all")`): Rows, Flag rate, Net loss. Same `help=` texts as Overview.
 
 4. **Empty state:** if `kpis["n"] == 0`: `st.info("No transactions match these filters.")` + Clear filters button; `st.stop()`.
 

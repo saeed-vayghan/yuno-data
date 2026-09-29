@@ -16,6 +16,7 @@
 ```python
 import os, pytest
 from streamlit.testing.v1 import AppTest
+from casarecon.cli import app as cli_app     # not `app`: that name is the fixture below
 APP = "src/casarecon/dashboard/app.py"
 
 @pytest.fixture
@@ -37,20 +38,20 @@ Tip: keep CSV building and formatting in plain functions (`data.transactions_csv
 | 1 | Smoke | For each of the 5 page files: `open_page(at, p)`; `assert not at.exception` | Core |
 | 2 | No DB | `CASARECON_DB=tmp/missing.duckdb`; run; `assert "Run `make all` first" in " ".join(i.value for i in at.info)` | Core |
 | 3 | Locked DB | `monkeypatch.setattr(queries, "worst_week", raise_(DbBusy("rebuilding, retry")))`; Overview; assert warning contains "being rebuilt" and a button labelled "Retry" exists | Stretch |
-| 4 | Worst week CLI ↔ UI | `CliRunner().invoke(app, ["worst-week","--month","last","--format","json"])` → top row `psp, auth_week, net_usd`; equals `queries.worst_week("last").iloc[0]`; and the Overview card markdown contains the PSP and `W##` text | Core |
-| 5 | Over $50 CLI ↔ UI | `recon query --min-usd 50 --format csv` → set of `transaction_id`; equals set from `queries.query_transactions(Filters(), min_usd=50)` **and** from `data.transactions_csv(Filters(), 50)`; and Outliers `at.dataframe[0].value["Transaction"]` ⊆ that set (table is capped at 1,000) | Core |
+| 4 | Worst week CLI ↔ UI | `CliRunner().invoke(cli_app, ["worst-week","--month","last","--format","json"])` → top row `psp, auth_week, net_usd`; equals `queries.worst_week("last").iloc[0]`; and the Overview card markdown contains the PSP and `W##` text | Core |
+| 5 | Over $50 CLI ↔ UI | `recon query --min-usd 50 --format csv` → set of `transaction_id`; equals set from `queries.query_transactions(Filters(), min_usd=50)` **and** from `data.transactions_csv(Filters(category=("large",)), 50)` (the Outliers default); and Outliers `at.dataframe[0].value["Transaction"]` ⊆ that set (table is capped at 1,000) | Core |
 | 6 | Default filter | Outliers: `at.number_input[0].value == 50`; `(df["Discrepancy after FX (USD)"].abs() > 50).all()` | Core |
 | 7 | Filter change | `at.number_input[0].set_value(100).run()`; set PSP multiselect to `["PSP_B"]`; all rows > 100 and PSP_B | Stretch |
 | 8 | URL params | `at.query_params["psp"] = "PSP_B"` before first run → Drill-down PSP multiselect value `["PSP_B"]`; `"PSP_Z"` → dropped + toast text "Ignored unknown PSP" | Stretch |
 | 9 | Empty state | Filters that match nothing (e.g. `min_usd = 10_000_000`) → info "No transactions over…" (Outliers) / "No transactions match these filters." (Drill-down) | Stretch |
 | 10 | Low sample | On the 500-row DB every PSP-week has n < 30 → card text contains "low sample"; `queries.worst_week("last")` has low-sample rows last | Stretch |
-| 11 | Masking | For every `at.dataframe` on all pages and the CSV bytes: no value in `customer_id` / "Customer" fails `^cus_••••.{4}$`; no raw `cus_` token from `data/raw` appears | Core |
+| 11 | Masking | For every `at.dataframe` on all pages and the CSV bytes: no value in `customer` / "Customer" fails `^cus_••••.{4}$`; no raw `cus_` token from `data/raw` appears | Core |
 | 12 | Currency format | `format.local(12345, "CLP", 0) == "CLP 12,345"`; Outliers CLP rows' raw-diff text has no `.`; USD columns configured with 2 dp | Stretch |
-| 13 | Alerts | Point core at `alerts_sample.jsonl` → metric values per severity equal counts in the file; point at an all-`INSUFFICIENT_DATA` file → "Not enough data for alerts" | Stretch |
-| 14 | Recommendations | With a sample RECOMMENDATIONS.md → 3–5 items (count `at.expander` labelled "How to implement"); missing file → "not built yet" | Stretch |
-| 15 | Formatters | `@pytest.mark.parametrize` over every row of the number-format table (`$1,234.56`, `$127.4k`, `−$62.10 under`, `+$4.00 over`, `MXN 1,234.56`, `COP 123,456.78`, `ARS 9,870.00`, `CLP 12,345`, `14.2%`, `▲ +1.1 pts`, `▼ −0.4 pts`, `21.3% [19.8–22.9]`, `12,345`, `W29 (Jul 13–19)`) | Core |
+| 13 | Alerts | Copy `alerts_sample.jsonl` to `$CASARECON_REPORTS_DIR/alerts.jsonl` → metric values per severity equal counts in the file; point at an all-`INSUFFICIENT_DATA` file → "Not enough data for alerts" | Stretch |
+| 14 | Recommendations | With a sample `recommendations.json` in `$CASARECON_REPORTS_DIR` → 3–5 items (count `at.expander` labelled "How to implement"); missing file → "not built yet" | Stretch |
+| 15 | Formatters | `@pytest.mark.parametrize` over every row of the number-format table (`$1,234.56`, `$127.4k`, `−$62.10 under`, `+$4.00 over`, `MXN 1,234.56`, `COP 123,456.78`, `ARS 9,870.00`, `CLP 12,345`, `14.2%`, `▲ +1.1 pts`, `▼ −0.4 pts`, `21.3% [19.8–22.9]`, `12,345`, `W25 (Jun 15–21)`) | Core |
 
-Also add, one each, the pytest for any core function you added (S5.3 rule): call it on the fixture DB, check columns and one known value.
+Also add, one each, the pytest for any Stretch core function you added (owner rule, file 00): call it on the fixture DB, check columns and one known value.
 
 ### 3. Wire into `make test`
 `make test` = `uv run pytest -q` already collects `tests/test_dashboard.py`. Keep each AppTest under ~5 s; the whole UI suite under 60 s.
@@ -86,7 +87,7 @@ Rubric Tech 15 (tested, reproducible); DoD "demonstrate thoughtful data engineer
 - Cache leaks between tests: call `st.cache_data.clear()` in the fixture.
 - Monkeypatching a function that the page imported by name: patch has no effect. Pages import `queries` as a module (file 02).
 - Comparing the capped UI table (1,000 rows) with the full CLI set: compare the CSV/core set for equality, the table for subset.
-- Test 4 on the 500-row DB: all rows are low sample, so ties are possible. Break ties in core (net USD desc, then PSP name) and in the CLI the same way.
+- Test 4 on the 500-row DB: all rows are low sample, so ties are possible. Core breaks ties (engineer contract row 5: `low_sample` asc, `net_usd` desc, `psp` asc, `auth_week` asc); the CLI prints core order, so both agree.
 - Committing screenshots from the smoke run.
 
 ## Hand-off

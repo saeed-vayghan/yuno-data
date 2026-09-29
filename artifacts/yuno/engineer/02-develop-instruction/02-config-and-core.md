@@ -80,13 +80,13 @@ def dbt_vars(cfg: Config | None = None) -> str:              # JSON string for d
 ### A4. `core/paths.py`
 - `REPO_ROOT` = folder that holds `pyproject.toml`.
 - `DB_PATH = Path(os.environ.get("CASARECON_DB", REPO_ROOT / "data/casarecon.duckdb")).resolve()` (always absolute).
-- `RAW_DIR`, `TRUTH_DIR`, `SAMPLE_DIR`, `REPORTS_DIR`, `FIGURES_DIR`, `SEEDS_DIR = REPO_ROOT/"dbt/seeds"`.
+- `RAW_DIR`, `TRUTH_DIR`, `SAMPLE_DIR`, `REPORTS_DIR`, `FIGURES_DIR`, `SEEDS_DIR = REPO_ROOT/"dbt/seeds"`. `RAW_DIR` and `REPORTS_DIR` honour env `CASARECON_RAW_DIR` / `CASARECON_REPORTS_DIR` (the test fixture points them at a tmp dir).
 
 ### A5. `core/errors.py`
 | Error | Raised when | CLI maps to | UI shows |
 |---|---|---|---|
 | `DataQualityError` | failed dbt test or validation gate | exit 5 | — |
-| `DbMissing` | `DB_PATH` does not exist | exit 1, "Run `make all` first" | "No data yet. Run `make all` first" |
+| `DbMissing` | `DB_PATH` does not exist (raised by `connect()`) | exit 1, "Run `make all` first" | "No data yet. Run `make all` first" |
 | `DbBusy` | DuckDB lock error while `build` writes | exit 1, "rebuilding, retry" | "The data is being rebuilt. Retry in a minute." |
 | `BadFilter` | unknown filter value / sort key | exit 2 | drop value + toast |
 
@@ -149,7 +149,7 @@ class Filters:
 Write the **Core** rows of the contract in `core/queries.py`. Each function: open `connect()`, run one parameterized SQL on a mart (or `fct_transaction_discrepancy`), return a DataFrame / dict, close.
 
 ## Part C (Stretch, 15 min, after the core checkpoint)
-Write the **Stretch** rows, in the UI plan's build order: Outliers (`outlier_summary`, `transaction_detail`, `similar_count`) → Overview (`kpis`, `weekly_trend`, `week_over_week`) → Drill-down (`category_mix`, `filter_options`) → Alerts (`load_alerts`) → Root causes (`load_recommendations`, `load_findings`). One pytest per function on the 500-row fixture DB.
+**Owner rule:** the engineer owns `core/` and writes these rows (work-order step 13, right after the CLI brief questions). If a row is still missing when a page needs it, the frontend developer may add it, using exactly the name, args and columns in the contract, the part B pattern (`connect()`, `?` params) and one pytest; the engineer reviews it. Write the **Stretch** rows in the UI build order: Outliers (`outlier_summary`, `transaction_detail`, `similar_count`) → Overview (`kpis`, `weekly_trend`, `week_over_week`) → Drill-down (`category_mix`, `filter_options`) → Alerts (`load_alerts`) → Root causes (`load_recommendations`, `load_findings`). One pytest per function on the 500-row fixture DB.
 
 ---
 
@@ -161,10 +161,10 @@ Import: `from casarecon import core`. All functions are **read-only**, take plai
 |---|---|---|---|---|---|---|
 | 1 | `connect()` | – | context manager → read-only `DuckDBPyConnection` | raises `DbMissing`, `DbBusy` | every core function | Core |
 | 2 | `db_version()` | – | `float` | DB file mtime (0.0 if missing); dashboard cache key | dashboard | Core |
-| 3 | `status()` | – | `dict` | `as_of: datetime`, `last_closed_week: str` ("2026-W25"), `last_closed_start: date`, `last_closed_end: date`, `open_week: str`, `last_full_month: str` ("2026-06"), `months: list[str]`, `n_rows: int` | CLI, alerts, UI banner | Core |
+| 3 | `status()` | – | `dict` | `as_of: datetime`, `last_closed_week: str` ("2026-W25"), `last_closed_start: date`, `last_closed_end: date`, `open_weeks: list[str]` (weeks after the last closed one), `last_full_month: str` ("2026-06"), `months: list[str]`, `n_rows: int`. `as_of` = latest timestamp in the data (never wall-clock); closed week = ISO week whose Sunday ≤ `as_of − 7 days`. Full data: as_of 2026-06-30, last closed 2026-W25 (Jun 15–21), last full month 2026-06 | CLI, alerts, UI banner | Core |
 | 4 | `psp_weekly(filters=None)` | `Filters \| None` (uses `psp`, `country`, `week`) | `DataFrame` | `psp, country, auth_week: str, week_start: date, week_end: date, week_month: str, n: int, n_flagged: int, rate: float, n_large: int, gross_under_usd, gross_over_usd, net_usd: float, low_sample: bool` | analysis, alerts | Core |
-| 5 | `worst_week(month="last")` | `"last"` or `"YYYY-MM"` | `DataFrame`, ranked | `rank: int, psp, auth_week, week_start, week_end, n, n_flagged, rate, n_large, net_usd, gross_under_usd, low_sample` — one row per PSP × week whose Thursday is in `month`; sorted by `low_sample` asc, then `net_usd` desc | `recon worst-week`, Overview card, FINDINGS | Core |
-| 6 | `query_transactions(filters=None, min_usd=None, limit=None)` | `Filters \| None`, `float \| None` (strict `abs_residual_usd > min_usd`), `int \| None` | `DataFrame` sorted `abs_residual_usd` desc, `transaction_id` asc | **TXN_COLUMNS** (below) | `recon query`, Outliers, Drill-down, CSV | Core |
+| 5 | `worst_week(month="last")` | `"last"` or `"YYYY-MM"` | `DataFrame`, ranked | `rank: int, psp, auth_week, week_start, week_end, n, n_flagged, rate, n_large, net_usd, gross_under_usd, low_sample` — one row per PSP × week whose Thursday is in `month`; sorted by `low_sample` asc, then `net_usd` desc, then `psp` asc, then `auth_week` asc (deterministic tie-break; the CLI prints this order as is) | `recon worst-week`, Overview card, FINDINGS | Core |
+| 6 | `query_transactions(filters=None, min_usd=None, limit=None)` | `Filters \| None`, `float \| None` (strict `abs_residual_usd > min_usd`), `int \| None` | `DataFrame` of **settled** fct rows, sorted `abs_residual_usd` desc, `transaction_id` asc | **TXN_COLUMNS** (below) | `recon query`, Outliers, Drill-down, CSV | Core |
 | 7 | `segment_rates(dim, filters=None)` | `dim` ∈ `country, currency, psp, psp_country, amount_tier, country_tier, weekday, is_weekend, lag_bucket, cross_border`; `Filters \| None` (None → read `mart_segment_rates`; else aggregate `fct`) | `DataFrame` | `segment_type, segment_value: str, n, n_flagged: int, rate, ci_low, ci_high (Wilson 95%), peer_rate, lift: float, n_large: int, gross_under_usd, gross_over_usd, net_usd, mean_loss_usd, median_loss_usd: float, low_sample: bool` | analysis, Drill-down, heatmap | Core |
 | 8 | `cause_summary(filters=None)` | `Filters \| None` | `DataFrame` sorted `gross_under_usd` desc | `likely_cause, n: int, n_flagged: int, gross_under_usd, gross_over_usd, net_usd, share_of_loss: float` — one row per cause label, `tip` always present (0 rows = "ruled out") | analysis, Root causes | Core |
 | 9 | `excess_loss(top=None)` | `int \| None` | `DataFrame` sorted `excess_usd` desc | `psp, country, n: int, rate, peer_rate, lift, excess_usd, mean_loss_usd, median_loss_usd: float` (peer = other PSPs in same country) | analysis, Root causes | Core |
@@ -178,10 +178,10 @@ Import: `from casarecon import core`. All functions are **read-only**, take plai
 | 17 | `outlier_summary(filters=None, min_usd=50)` | `Filters \| None`, `float` | `dict` | `n: int, gross_under_usd, gross_over_usd: float` (same rows as `query_transactions`) | Outliers | Stretch |
 | 18 | `transaction_detail(transaction_id)` | `str` | `dict \| None` | TXN_COLUMNS + `fx_auth, fx_settle, fx_move_pct, amount_usd, settled_usd: float, item_count: int, risk_score: float, is_weekend, is_lag_outlier, rounding_flag: bool` | Outliers detail panel | Stretch |
 | 19 | `similar_count(transaction_id)` | `str` | `dict` | `psp, country, likely_cause: str, n: int` | Outliers detail panel | Stretch |
-| 20 | `filter_options()` | – | `dict[str, list[str]]` | `country, psp, tier, weekday, category, cause, weeks, months` | Drill-down widgets, URL validation | Stretch |
+| 20 | `filter_options()` | – | `dict[str, list[str]]` | `country, psp, tier, weekday, category, cause, weeks, months` (full calendar months only), `min_date, max_date` (auth date range, ISO strings) | Drill-down widgets, URL validation | Stretch |
 | 21 | `pending()` | – | `DataFrame` | `psp, country, n: int, amount_usd, oldest_age_days: float` (age vs `as_of`) | alerts | Stretch |
-| 22 | `load_alerts()` | – | `DataFrame \| None` (None if file missing) | `period, rule_id, segment, key, severity, status, message, owner: str, n: int, value, threshold: float` | Alerts page, Overview KPI | Stretch |
-| 23 | `load_findings()` | – | `dict \| None` | `markdown: str` (FINDINGS.md), `items: list[dict]` (findings.json) | Root causes | Stretch |
+| 22 | `load_alerts()` | – | `DataFrame \| None` (None if file missing) | `period, rule_id, segment, key, severity, status, message, owner: str, psp, country: str \| None` (null when not part of the segment), `n: int, value, threshold: float`. `status` ∈ `NEW, ONGOING, RESOLVED, INSUFFICIENT_DATA`; `severity` ∈ `SEV2, SEV3, INFO` (file 08) | Alerts page, Overview KPI | Stretch |
+| 23 | `load_findings()` | – | `dict \| None` | `{"markdown": str (FINDINGS.md), "items": list[dict]}` (`items` = `findings.json["findings"]`) | Root causes | Stretch |
 | 24 | `load_recommendations()` | – | `list[dict] \| None` | `rank: int, action, evidence, owner, implementation: str, usd_quarter: float` (from `reports/recommendations.json`) | Root causes | Stretch |
 
 **TXN_COLUMNS** (fixed order; also the `recon query --format csv` header):
@@ -189,7 +189,7 @@ Import: `from casarecon import core`. All functions are **read-only**, take plai
 - `customer` = `mask_id(customer_id)`; the full ID never leaves core.
 - `authorized_amount, expected_settled, settled_amount, diff_local` = int minor units; `residual_usd` signed (negative = under); `direction` ∈ `under, over, none`.
 
-**Frontend rules:** wrap calls in `st.cache_data`, passing `core.db_version()` as an argument so a rebuild clears the cache; catch `DbMissing` / `DbBusy`; never write SQL in a page; `Filters` must be built from `filter_options()` values. The Outliers page passes `Filters(category=("large",))` so that "min $0" still shows only `large` rows (every row over $20 is `large` anyway, so "over $50" is unchanged).
+**Frontend rules:** wrap every DB-reading call in `st.cache_data` (no TTL), passing `core.db_version()` as a hashed argument (no leading `_`) so a rebuild clears the cache; do not cache the 3 report loaders (`load_*`: small files, read on each run); catch `DbMissing` / `DbBusy`; never write SQL in a page; `Filters` must be built from `filter_options()` values. The Outliers page passes `Filters(category=("large",))` so that "min $0" still shows only `large` rows (every row over $20 is `large` anyway, so "over $50" is unchanged).
 
 ---
 
@@ -208,7 +208,7 @@ Import: `from casarecon import core`. All functions are **read-only**, take plai
 FR1 "define meaningful" (cut-offs in config) · FR3 (one core for CLI + dashboard) · Tech 15 (no logic in UI, typed config) · security (read-only DB, fixed filters, masked IDs).
 
 ## Pitfalls
-- **DuckDB lock:** a read-only connection cannot open while `build` holds the write lock. Keep connections short (open → query → close). Never keep a global connection in Streamlit.
+- **DuckDB lock:** `build` writes a `.tmp` file and swaps it in (file 04), so `DbBusy` is rare; keep the handler anyway. Keep connections short (open → query → close). Never keep a global connection in Streamlit.
 - **Relative DB path:** dbt runs from `dbt/`, the CLI from the repo root. Always pass an **absolute** `DB_PATH` (file 04 sets `CASARECON_DB` before calling dbt).
 - **Rounding mismatch:** Python `round()` is banker's rounding; DuckDB `round()` is half away from zero. Use `round_half_up()` in Python everywhere money is rounded, or generator and dbt will disagree by 1 minor unit.
 - **CLP has 0 decimals:** never hard-code `/100`; always use `exponent()`.

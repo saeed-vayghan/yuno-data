@@ -36,11 +36,11 @@
 
 4. **Output `reports/alerts.jsonl`** (one JSON per line, sorted by severity, rule_id, segment; no wall-clock time):
    ```json
-   {"period": "2026-W25", "rule_id": "peer", "segment": "PSP_B|AR", "key": "peer|PSP_B|AR",
+   {"period": "2026-W25", "rule_id": "peer", "segment": "PSP_B|AR", "key": "peer|PSP_B|AR", "psp": "PSP_B", "country": "AR",
     "severity": "SEV2", "status": "NEW", "owner": "PSP ops", "n": 612, "value": 0.179, "threshold": 0.141,
     "message": "PSP_B flags 17.9% of AR rows vs 12.1% for other PSPs (+5.8 pts, q < 0.001)."}
    ```
-   Fields = `load_alerts()` columns in the core contract.
+   Fields = `load_alerts()` columns in the core contract. `psp` / `country` are null when the segment has none (e.g. `money_leak` is portfolio; `settle_lag` `CO|200+` has `country` only); the dashboard uses them for "View segment".
 
 5. **`reports/alerts.md`** via `templates/alerts.md.j2`: header (period, as-of), counts by severity, table of non-info alerts, money lines (gross under, gross over, net USD for `W` vs `W−1`), week-over-week table from `core.week_over_week()` with ▲ worse / ▼ better, and a closed "Insufficient data" list.
 
