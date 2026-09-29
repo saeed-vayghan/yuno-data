@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "env": {
+      "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "60"
+    },
+    "allow": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "Bash(rtk ls *)",
+      "Bash(rtk read *)",
+      "Bash(rtk git *)",
+      "Bash(rtk find *)"
+    ]
+  }
+}
