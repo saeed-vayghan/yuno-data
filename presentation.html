@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CasaMarket Anomaly Hunt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070b18; --bg2:#0d1428; --surface:#121a33; --surface2:#18223f; --border:#26325a;
+  --text:#e9edf7; --muted:#97a2c3; --faint:#5d6891;
+  --violet:#8b6cff; --cyan:#22d3ee; --green:#34d399; --amber:#fbbf24; --red:#f87171; --pink:#f472b6; --blue:#60a5fa;
+  --grad:linear-gradient(135deg,#8b6cff 0%,#22d3ee 100%);
+  --radius:16px;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden}
+body{background:radial-gradient(1200px 700px at 15% -10%,#1b1647 0%,transparent 60%),radial-gradient(900px 600px at 110% 110%,#0b2d3a 0%,transparent 55%),var(--bg)}
+
+/* ---------- stage ---------- */
+#viewport{position:fixed;inset:0;display:grid;place-items:center}
+#stage{width:1280px;height:720px;position:relative;transform-origin:center center}
+.slide{position:absolute;inset:0;padding:52px 72px 64px;display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;transform:translateX(40px);transition:opacity .45s ease,transform .45s ease}
+.slide.active{opacity:1;pointer-events:auto;transform:none}
+.slide.prev{transform:translateX(-40px)}
+.slide-foot{position:absolute;left:72px;right:72px;bottom:22px;display:flex;justify-content:space-between;
+  font-size:12px;color:var(--faint);letter-spacing:.04em}
+
+/* ---------- type ---------- */
+.kicker{font-size:13px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:10px}
+h1{font-size:76px;line-height:1.02;font-weight:800;letter-spacing:-.03em}
+h2{font-size:42px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin-bottom:26px}
+h3{font-size:19px;font-weight:700;margin-bottom:8px}
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.muted{color:var(--muted)} .faint{color:var(--faint)}
+.lead{font-size:22px;color:var(--muted);line-height:1.45;max-width:880px}
+code,.mono{font-family:var(--mono);font-size:.9em}
+ul.clean{list-style:none}
+ul.clean li{position:relative;padding-left:20px;margin:7px 0;color:var(--muted);font-size:15.5px;line-height:1.4}
+ul.clean li::before{content:"";position:absolute;left:2px;top:.55em;width:7px;height:7px;border-radius:2px;background:var(--violet)}
+ul.clean li b{color:var(--text);font-weight:600}
+
+/* ---------- layout ---------- */
+.fill{flex:1;min-height:0}
+.row{display:flex;gap:20px}
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+.center{align-items:center;justify-content:center}
+
+/* ---------- components ---------- */
+.card{background:linear-gradient(180deg,var(--surface2),var(--surface));border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px}
+.card.glow{box-shadow:0 0 0 1px rgba(139,108,255,.35),0 18px 50px -20px rgba(139,108,255,.45)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;
+  background:rgba(139,108,255,.14);color:#c4b5fd;border:1px solid rgba(139,108,255,.3);white-space:nowrap}
+.chip.cyan{background:rgba(34,211,238,.12);color:#67e8f9;border-color:rgba(34,211,238,.3)}
+.chip.green{background:rgba(52,211,153,.12);color:#6ee7b7;border-color:rgba(52,211,153,.3)}
+.chip.amber{background:rgba(251,191,36,.12);color:#fcd34d;border-color:rgba(251,191,36,.3)}
+.chip.red{background:rgba(248,113,113,.12);color:#fca5a5;border-color:rgba(248,113,113,.3)}
+.chip.ghost{background:transparent;color:var(--muted);border-color:var(--border)}
+.chip.strike{background:transparent;color:var(--faint);border-color:var(--border);text-decoration:line-through}
+.stat{padding:24px}
+.stat .num{font-size:52px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.stat .lbl{margin-top:10px;color:var(--muted);font-size:15px}
+.icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:21px;margin-bottom:12px;
+  background:rgba(139,108,255,.14);border:1px solid rgba(139,108,255,.3)}
+
+table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.t th{background:var(--surface2);text-align:left;color:var(--muted);font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;padding:11px 16px}
+.t td{padding:11px 16px;border-top:1px solid var(--border);background:rgba(18,26,51,.6);vertical-align:top}
+.t td:first-child{font-weight:600}
+
+/* flow */
+.flow{display:flex;align-items:stretch;gap:0}
+.flow .step{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 14px;text-align:center;position:relative}
+.flow .step .n{font-family:var(--mono);font-size:12px;color:var(--cyan)}
+.flow .step .s{font-weight:700;font-size:16px;margin:6px 0 4px}
+.flow .step .d{font-size:12.5px;color:var(--muted);line-height:1.35}
+.flow .arrow{width:34px;display:grid;place-items:center;color:var(--faint);font-size:20px;flex:none}
+.gate{flex:none;width:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.gate .dia{width:46px;height:46px;transform:rotate(45deg);border-radius:9px;background:rgba(251,191,36,.14);border:1.5px solid var(--amber);display:grid;place-items:center}
+.gate .dia span{transform:rotate(-45deg);font-size:18px}
+.gate small{font-size:11.5px;color:#fcd34d;text-align:center;line-height:1.25;font-weight:600}
+
+/* stacked bar */
+.stack{display:flex;height:54px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.stack div{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#0b1020;white-space:nowrap;overflow:hidden}
+
+/* diagram frames */
+.diagram{background:#fff;border-radius:14px;padding:10px;cursor:zoom-in;position:relative;overflow:hidden;border:1px solid var(--border);
+  transition:transform .2s ease,box-shadow .2s ease;display:flex;align-items:center;justify-content:center}
+.diagram:hover{transform:translateY(-2px);box-shadow:0 20px 50px -20px rgba(34,211,238,.45)}
+.diagram img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.diagram .zoom{position:absolute;right:10px;bottom:10px;background:rgba(7,11,24,.8);color:#fff;font-size:11.5px;padding:4px 9px;border-radius:8px}
+.diagram .miss{color:#334;font-size:13px;text-align:center;padding:20px}
+
+/* timeline */
+.tl{display:grid;grid-template-columns:1fr 1fr;gap:0 48px}
+.tl-col{position:relative;padding-left:26px}
+.tl-col::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--violet),var(--cyan));opacity:.45}
+.tl-item{position:relative;margin-bottom:8px;opacity:0;transform:translateY(8px)}
+.slide.active .tl-item{animation:rise .45s ease forwards}
+.tl-item::before{content:"";position:absolute;left:-24px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2.5px solid var(--dot,var(--violet))}
+.tl-head{display:flex;align-items:center;gap:10px}
+.tl-num{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.tl-time{font-family:var(--mono);font-size:12px;color:var(--cyan)}
+.tl-title{font-weight:650;font-size:15.5px;margin-top:3px}
+.tl-sum{font-size:12.5px;color:var(--muted);margin-top:1px;line-height:1.35}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* agents */
+.agent{display:flex;gap:14px;align-items:center;padding:14px 16px}
+.agent .av{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px;flex:none;background:var(--surface2);border:1px solid var(--border)}
+.agent .nm{font-weight:700;font-size:15.5px}
+.agent .rl{font-size:12.5px;color:var(--muted)}
+.human{border:1.5px solid var(--amber);background:linear-gradient(180deg,rgba(251,191,36,.12),rgba(251,191,36,.03))}
+
+/* split bar */
+.split{display:flex;height:120px;border-radius:18px;overflow:hidden;border:1px solid var(--border)}
+.split>div{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 32px}
+.split .a{background:linear-gradient(135deg,rgba(139,108,255,.4),rgba(139,108,255,.15))}
+.split .b{background:linear-gradient(135deg,rgba(34,211,238,.32),rgba(34,211,238,.1))}
+.split .big{font-size:40px;font-weight:800}
+
+/* tech cards */
+.tech{display:flex;flex-direction:column;gap:8px;padding:18px 20px}
+.tech .top{display:flex;align-items:center;gap:12px}
+.tech .top .icon{margin:0;width:40px;height:40px;font-size:19px}
+.tech .top .nm{font-weight:800;font-size:18px}
+.tech .top .ver{font-size:12px;color:var(--faint);font-family:var(--mono)}
+.tech ul.clean li{font-size:14px;margin:4px 0}
+.vs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:auto;padding-top:6px}
+.vs .lbl{font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
+
+.term{background:#05080f;border:1px solid var(--border);border-radius:14px;padding:18px 22px;font-family:var(--mono);font-size:15px;line-height:1.8}
+.term .p{color:var(--green)} .term .c{color:var(--faint)}
+
+/* gallery tabs */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tab{cursor:pointer;padding:7px 13px;border-radius:10px;font-size:13px;font-weight:600;color:var(--muted);background:var(--surface);border:1px solid var(--border)}
+.tab.on{color:#fff;background:rgba(139,108,255,.25);border-color:var(--violet)}
+
+/* ---------- chrome ---------- */
+#progress{position:fixed;top:0;left:0;height:3px;background:var(--grad);transition:width .4s ease;z-index:10}
+#dots{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:10}
+#dots button{width:8px;height:8px;border-radius:50%;border:0;background:var(--border);cursor:pointer;padding:0;transition:all .25s}
+#dots button.on{background:var(--cyan);width:22px;border-radius:5px}
+.navbtn{position:fixed;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:1px solid var(--border);
+  background:rgba(18,26,51,.7);color:var(--text);font-size:18px;cursor:pointer;z-index:10;opacity:.35;transition:opacity .2s}
+.navbtn:hover{opacity:1}
+#prevBtn{left:16px} #nextBtn{right:16px}
+#hint{position:fixed;right:16px;bottom:12px;font-size:11.5px;color:var(--faint);z-index:10}
+#lightbox{position:fixed;inset:0;background:rgba(3,6,14,.92);z-index:50;display:none;flex-direction:column}
+#lightbox.open{display:flex}
+#lbBar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;color:var(--muted);font-size:14px}
+#lbBar button{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;margin-left:6px}
+#lbScroll{flex:1;overflow:auto;padding:0 20px 20px;display:flex}
+#lbScroll img{background:#fff;border-radius:12px;padding:16px;margin:auto;width:100%;height:auto;transition:width .2s}
+@media (max-width:700px){ .navbtn,#hint{display:none} }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="viewport"><div id="stage">
+
+<!-- 1 · Title -->
+<section class="slide" data-title="Title">
+  <div class="fill" style="display:flex;flex-direction:column;justify-content:center">
+    <div class="row" style="gap:10px;margin-bottom:26px">
+      <span class="chip">Yuno take-home</span><span class="chip cyan">Data engineering</span><span class="chip amber">Agents + human in the middle</span>
+    </div>
+    <h1>CasaMarket<br><span class="grad">Anomaly Hunt</span></h1>
+    <p class="lead" style="margin-top:22px">Finding the silent 18% revenue drain between <b style="color:var(--text)">authorized</b> and <b style="color:var(--text)">settled</b> payments, built by a Mitra agent team with a human at every gate.</p>
+    <div class="row" style="margin-top:44px;gap:34px;color:var(--muted);font-size:14px">
+      <div><div class="faint" style="font-size:12px;letter-spacing:.1em">WHAT</div>Pipeline · Root cause · Monitoring</div>
+      <div><div class="faint" style="font-size:12px;letter-spacing:.1em">HOW</div>Mitra multi-agent framework</div>
+      <div><div class="faint" style="font-size:12px;letter-spacing:.1em">BUDGET</div>~2 hours with AI</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · Problem -->
+<section class="slide" data-title="The problem">
+  <div class="kicker">01 · The problem</div>
+  <h2>Money is leaking between checkout and payout</h2>
+  <div class="grid g4" style="margin-bottom:26px">
+    <div class="card stat"><div class="num grad">4</div><div class="lbl">countries · MX · CO · AR · CL</div></div>
+    <div class="card stat"><div class="num grad">45k</div><div class="lbl">transactions / month</div></div>
+    <div class="card stat glow"><div class="num" style="color:var(--amber)">18%</div><div class="lbl">approved payments settle for a different amount</div></div>
+    <div class="card stat glow"><div class="num" style="color:var(--red)">$127k</div><div class="lbl">unexplained last quarter</div></div>
+  </div>
+  <div class="flow" style="margin-top:4px">
+    <div class="step"><div class="n">T+0</div><div class="s">Authorization</div><div class="d">Hold at checkout<br><b style="color:var(--text)">$100.00</b></div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="n">T+1…5 days</div><div class="s">Settlement</div><div class="d">Money actually arrives<br><b style="color:var(--amber)">$96.40 ?</b></div></div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:var(--red)"><div class="n">Gap</div><div class="s">Discrepancy</div><div class="d">FX timing · partial capture · fees<br>tax · fraud hold · PSP adjustment</div></div>
+  </div>
+</section>
+
+<!-- 3 · The ask -->
+<section class="slide" data-title="The ask">
+  <div class="kicker">02 · The ask</div>
+  <h2>Four requirements, scored out of 100</h2>
+  <div class="grid g2 fill" style="grid-template-columns:1.25fr 1fr;gap:26px">
+    <table class="t" style="align-self:start">
+      <tr><th>#</th><th>Requirement</th><th>Type</th></tr>
+      <tr><td>FR1</td><td>Pipeline &amp; discrepancy detection</td><td><span class="chip green">Core</span></td></tr>
+      <tr><td>FR2</td><td>Root-cause analysis</td><td><span class="chip green">Core</span></td></tr>
+      <tr><td>FR3</td><td>Monitoring dashboard / alerts</td><td><span class="chip ghost">Stretch</span></td></tr>
+      <tr><td>FR4</td><td>3–5 actionable recommendations</td><td><span class="chip ghost">Stretch</span></td></tr>
+    </table>
+    <div class="card" id="rubric"><h3 style="margin-bottom:14px">Rubric</h3></div>
+  </div>
+</section>
+
+<!-- 4 · Mitra team -->
+<section class="slide" data-title="The team">
+  <div class="kicker">03 · How we worked</div>
+  <h2>A Mitra agent team, <span class="grad">with a human in the middle</span></h2>
+  <div class="grid fill" style="grid-template-columns:1fr 1.05fr;gap:26px">
+    <div class="grid g2" style="align-content:start;gap:12px">
+      <div class="card agent"><div class="av">🎼</div><div><div class="nm">Mitra</div><div class="rl">Orchestrator · sessions, reviews</div></div></div>
+      <div class="card agent"><div class="av">🏛️</div><div><div class="nm">Jamshid</div><div class="rl">Architect · plan, system design</div></div></div>
+      <div class="card agent"><div class="av">⚡</div><div><div class="nm">Kaveh</div><div class="rl">Engineer · specs, backend</div></div></div>
+      <div class="card agent"><div class="av">🎨</div><div><div class="nm">Mani</div><div class="rl">Designer · UI/UX, dashboard</div></div></div>
+      <div class="card agent" style="opacity:.55"><div class="av">📊</div><div><div class="nm">Sina</div><div class="rl">Analyst · on standby</div></div></div>
+      <div class="card agent" style="opacity:.55"><div class="av">👑</div><div><div class="nm">Zal</div><div class="rl">Manager · on standby</div></div></div>
+      <div class="card agent human" style="grid-column:span 2"><div class="av" style="border-color:var(--amber)">🧑‍💻</div><div><div class="nm">Human (me)</div><div class="rl">Sets scope · picks who works · decides · approves every gate</div></div></div>
+    </div>
+    <table class="t" style="align-self:start">
+      <tr><th style="color:#fcd34d">The human</th><th>The agents</th></tr>
+      <tr><td>Sets goal &amp; scope</td><td>Research &amp; draft</td></tr>
+      <tr><td>Chooses who works together</td><td>Debate in party mode</td></tr>
+      <tr><td>Makes key calls</td><td>Propose options + trade-offs</td></tr>
+      <tr><td>Runs judgement rounds</td><td>Fix what review found</td></tr>
+      <tr><td>Checks vs brief &amp; DoD</td><td>Map requirement → deliverable</td></tr>
+      <tr><td>Keeps the timeline</td><td>Write code &amp; tests</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 5 · Workflow -->
+<section class="slide" data-title="Workflow">
+  <div class="kicker">04 · The workflow</div>
+  <h2>Nothing moves forward without a human gate</h2>
+  <div class="flow" style="margin-top:24px">
+    <div class="step"><div class="n">01</div><div class="s">Understand</div><div class="d">Scenario + playbook<br><span class="faint">Architect</span></div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="n">02</div><div class="s">Research</div><div class="d">Party mode, 3 versions<br><span class="faint">Architect + Engineer</span></div></div>
+    <div class="gate"><div class="dia"><span>⚖️</span></div><small>Judgement<br>+ quality round</small></div>
+    <div class="step"><div class="n">03</div><div class="s">Plan</div><div class="d">Impl + UI/UX plan<br>system diagrams</div></div>
+    <div class="gate"><div class="dia"><span>🎯</span></div><small>Judged vs<br>goals &amp; DoD</small></div>
+    <div class="step"><div class="n">04</div><div class="s">Instructions</div><div class="d">Step-by-step guide<br>per owner</div></div>
+    <div class="gate"><div class="dia"><span>✅</span></div><small>Reviewed<br>before code</small></div>
+    <div class="step" style="border-color:var(--cyan)"><div class="n">05</div><div class="s">Build</div><div class="d">M1 → M2 → M3<br>code + tests</div></div>
+  </div>
+  <div class="grid g3" style="margin-top:34px">
+    <div class="card"><div class="icon">🗂️</div><h3>Clear ownership</h3><p class="muted" style="font-size:14.5px">Every file has one owner: INFRA, BACKEND or FRONTEND.</p></div>
+    <div class="card"><div class="icon">📮</div><h3>Hand-off file</h3><p class="muted" style="font-size:14.5px">Need a change elsewhere? Ask in <code>HANDOFF.md</code>, never edit.</p></div>
+    <div class="card"><div class="icon">📜</div><h3>One contract</h3><p class="muted" style="font-size:14.5px">CLI and dashboard read the same core, so they give the same answer.</p></div>
+  </div>
+</section>
+
+<!-- 6 · Timeline -->
+<section class="slide" data-title="Timeline">
+  <div class="kicker">05 · Timeline</div>
+  <h2 style="margin-bottom:18px">How the repo was built</h2>
+  <div class="row" style="gap:8px;margin-bottom:18px" id="tlLegend"></div>
+  <div class="tl fill" id="timeline"></div>
+</section>
+
+<!-- 7 · Time split -->
+<section class="slide" data-title="Time split">
+  <div class="kicker">06 · A deliberate choice</div>
+  <h2>Half the time thinking, half building</h2>
+  <div class="split" style="margin-top:10px">
+    <div class="a"><div class="big">~50%</div><div>Understand · research · plan · review</div></div>
+    <div class="b"><div class="big">~50%</div><div>Develop · test</div></div>
+  </div>
+  <div class="grid g3" style="margin-top:34px">
+    <div class="card"><div class="icon">🧭</div><h3>Corner cases early</h3><p class="muted" style="font-size:14.5px">FX, CLP 0 decimals and "worst week" rules were fixed on paper first.</p></div>
+    <div class="card"><div class="icon">🧱</div><h3>Solid delivery</h3><p class="muted" style="font-size:14.5px">Maintainable, scalable and secure, not just "working".</p></div>
+    <div class="card"><div class="icon">⚡</div><h3>Fast build</h3><p class="muted" style="font-size:14.5px">Agents code in parallel from clear, reviewed instructions.</p></div>
+  </div>
+</section>
+
+<!-- 8 · Solution -->
+<section class="slide" data-title="Solution">
+  <div class="kicker">07 · The solution</div>
+  <h2><code style="font-size:.85em" class="grad">recon</code>: one command, end to end</h2>
+  <div class="flow">
+    <div class="step"><div class="n">generate</div><div class="s">Synthetic data</div><div class="d">135k rows, seeded<br>+ truth labels</div></div><div class="arrow">→</div>
+    <div class="step"><div class="n">build</div><div class="s">dbt on DuckDB</div><div class="d">raw → staging<br>→ marts</div></div><div class="arrow">→</div>
+    <div class="step"><div class="n">validate</div><div class="s">Quality gate</div><div class="d">shares + patterns<br>exit 5 on fail</div></div><div class="arrow">→</div>
+    <div class="step"><div class="n">analyze</div><div class="s">Root cause</div><div class="d">stats + GLM<br>cause labels</div></div><div class="arrow">→</div>
+    <div class="step"><div class="n">alerts</div><div class="s">6 rules</div><div class="d">last closed week</div></div><div class="arrow">→</div>
+    <div class="step" style="border-color:var(--cyan)"><div class="n">report</div><div class="s">Outputs</div><div class="d">FINDINGS · RECS<br>CLI · dashboard</div></div>
+  </div>
+  <div class="grid g3" style="margin-top:30px">
+    <div class="card"><h3>🎯 Frame</h3><ul class="clean"><li><b>Lean local build</b>, one command</li><li>Quality not cut for time</li><li>AWS scale path <b>documented only</b></li></ul></div>
+    <div class="card"><h3>🔁 Reproducible</h3><ul class="clean"><li>Full rebuild on every run</li><li>Same seed → <b>same bytes</b></li><li>Locked deps (<code>uv.lock</code>)</li></ul></div>
+    <div class="card"><h3>▶️ 3 run paths</h3><ul class="clean"><li><code>make all</code></li><li><code>uv run recon all</code></li><li><code>docker compose up</code></li></ul></div>
+  </div>
+</section>
+
+<!-- 9 · Architecture -->
+<section class="slide" data-title="Architecture">
+  <div class="kicker">08 · Architecture</div>
+  <h2 style="margin-bottom:16px">High-level view</h2>
+  <div class="diagram fill" data-src="artifacts/yuno/architect/03-system-design/01-high-level.svg" data-cap="High-level view"></div>
+</section>
+
+<!-- 10 · Tech: data -->
+<section class="slide" data-title="Why: data stack">
+  <div class="kicker">09 · Why this tech · data stack</div>
+  <h2>Chosen for correctness and simplicity</h2>
+  <div class="grid g2 fill" style="gap:16px">
+    <div class="card tech"><div class="top"><div class="icon">🦆</div><div><div class="nm">DuckDB</div><div class="ver">1.4.x LTS · one file</div></div></div>
+      <ul class="clean"><li><b>In-process</b>: no server, runs on a laptop</li><li>Columnar OLAP: full run in ~1 min at 135k rows</li><li>Real decimal &amp; time types</li></ul>
+      <div class="vs"><span class="lbl">beat</span><span class="chip strike">SQLite</span><span class="chip strike">Postgres</span><span class="chip strike">Lakehouse</span></div></div>
+    <div class="card tech"><div class="top"><div class="icon">🧱</div><div><div class="nm">dbt-core + dbt-duckdb</div><div class="ver">1.12 · 1.11</div></div></div>
+      <ul class="clean"><li><b>Tests, contracts, lineage</b> = good DE practice</li><li>Layers: raw → staging → intermediate → marts</li><li>Models <b>port to Yuno's dbt</b> on StarRocks</li></ul>
+      <div class="vs"><span class="lbl">runner-up</span><span class="chip ghost">plain SQL files</span><span class="lbl" style="margin-left:6px">beat</span><span class="chip strike">notebook only</span></div></div>
+    <div class="card tech"><div class="top"><div class="icon">🐍</div><div><div class="nm">Python + uv</div><div class="ver">3.12 · uv.lock</div></div></div>
+      <ul class="clean"><li><b>One language</b> for data, stats, CLI and UI</li><li>Locked deps: same env on every machine</li><li>Fast install, one-line setup</li></ul>
+      <div class="vs"><span class="lbl">beat</span><span class="chip strike">polars scripts (hides SQL)</span></div></div>
+    <div class="card tech"><div class="top"><div class="icon">🎲</div><div><div class="nm">Custom seeded generator</div><div class="ver">YAML spec · ~250 LOC</div></div></div>
+      <ul class="clean"><li><b>Exact</b> bucket shares + planted patterns</li><li>Same seed → same output, byte for byte</li><li>Truth labels to <b>score our own analysis</b></li></ul>
+      <div class="vs"><span class="lbl">beat</span><span class="chip strike">Faker</span><span class="chip strike">SDV</span><span class="chip strike">Mockaroo</span></div></div>
+  </div>
+</section>
+
+<!-- 11 · Tech: serving -->
+<section class="slide" data-title="Why: analysis & serving">
+  <div class="kicker">10 · Why this tech · analysis &amp; serving</div>
+  <h2>Chosen for evidence and speed of use</h2>
+  <div class="grid g2 fill" style="gap:16px">
+    <div class="card tech"><div class="top"><div class="icon">📐</div><div><div class="nm">scipy + statsmodels</div><div class="ver">segment tests + GLM</div></div></div>
+      <ul class="clean"><li><b>Statistical evidence</b> for the 25-pt RCA score</li><li>GLM splits "PSP_B" from "Argentina"</li><li>BH-FDR: safe when testing many segments</li></ul>
+      <div class="vs"><span class="lbl">plus</span><span class="chip ghost">rule-based cause labels</span></div></div>
+    <div class="card tech"><div class="top"><div class="icon">📊</div><div><div class="nm">Streamlit + Plotly</div><div class="ver">localhost:8501</div></div></div>
+      <ul class="clean"><li><b>Same language</b> as the pipeline</li><li>Built-in table search &amp; sort</li><li><code>AppTest</code> for UI tests</li></ul>
+      <div class="vs"><span class="lbl">runner-up</span><span class="chip ghost">Evidence</span><span class="lbl" style="margin-left:6px">beat</span><span class="chip strike">Dash</span><span class="chip strike">Superset</span><span class="chip strike">Grafana</span></div></div>
+    <div class="card tech"><div class="top"><div class="icon">⌨️</div><div><div class="nm">Typer CLI</div><div class="ver">recon · 0.27.x</div></div></div>
+      <ul class="clean"><li>Little code, typed flags, <code>--help</code></li><li>Clear exit codes: 0 · 1 · 2 · 5</li><li>Thin shell: <b>no metric logic in CLI</b></li></ul>
+      <div class="vs"><span class="lbl">runner-up</span><span class="chip ghost">Click</span><span class="lbl" style="margin-left:6px">beat</span><span class="chip strike">argparse</span><span class="chip strike">Go / Rust</span></div></div>
+    <div class="card tech"><div class="top"><div class="icon">🚨</div><div><div class="nm">YAML rules + evaluator</div><div class="ver">~150 LOC · alerts.yaml</div></div></div>
+      <ul class="clean"><li><b>Rules are data</b>, easy to unit-test</li><li>Supports BH + weekly p-chart</li><li>Same code runs as an Airflow task later</li></ul>
+      <div class="vs"><span class="lbl">runner-up</span><span class="chip ghost">SQL in dbt</span><span class="lbl" style="margin-left:6px">beat</span><span class="chip strike">Prometheus</span><span class="chip strike">Soda / GX</span></div></div>
+  </div>
+</section>
+
+<!-- 12 · Detection -->
+<section class="slide" data-title="Detection">
+  <div class="kicker">11 · Detection</div>
+  <h2>Remove the FX move first, then judge the gap</h2>
+  <div class="card" style="font-family:var(--mono);font-size:17px;text-align:center;padding:16px;margin-bottom:22px">
+    <span class="faint">expected</span> = auth × <span style="color:var(--cyan)">rate(settle day)</span> / <span style="color:var(--cyan)">rate(auth day)</span>
+    &nbsp;&nbsp;·&nbsp;&nbsp; <span class="faint">residual</span> = settled − expected
+  </div>
+  <div class="stack" id="catBar"></div>
+  <div class="grid g2" style="margin-top:22px;grid-template-columns:1.4fr 1fr;gap:22px">
+    <table class="t">
+      <tr><th>Category</th><th>Rule</th><th>Share</th></tr>
+      <tr><td>exact</td><td>Δ = 0</td><td>67%</td></tr>
+      <tr><td>rounding</td><td>|Δ| ≤ 1 minor unit</td><td>1%</td></tr>
+      <tr><td>fx_tolerance</td><td>≤ 2% and &lt; $20</td><td>18%</td></tr>
+      <tr><td style="color:var(--amber)">meaningful</td><td>2–5% and &lt; $20</td><td>10%</td></tr>
+      <tr><td style="color:var(--red)">large</td><td>&gt; 5% or ≥ $20</td><td>4%</td></tr>
+    </table>
+    <div class="card"><h3>Money done right</h3><ul class="clean">
+      <li><b>Integer minor units</b>; CLP has 0 decimals</li>
+      <li>Flag = meaningful + large (<b>~14%</b>)</li>
+      <li>Outlier = a <b>large</b> row, no z-score</li>
+      <li>Cut-offs live in <code>thresholds.yaml</code></li></ul></div>
+  </div>
+</section>
+
+<!-- 13 · Planted patterns -->
+<section class="slide" data-title="Planted patterns">
+  <div class="kicker">12 · Test data</div>
+  <h2>Patterns planted on purpose, to prove we can find them</h2>
+  <div class="grid g4" style="margin-bottom:18px">
+    <div class="card"><span class="chip red">P1</span><h3 style="margin-top:10px">PSP_B in Argentina</h3><p class="muted" style="font-size:14px">+3.5 pts meaningful rate vs peers</p></div>
+    <div class="card"><span class="chip red">P2</span><h3 style="margin-top:10px">Colombia &gt; $300</h3><p class="muted" style="font-size:14px">Settles 2–4 days later</p></div>
+    <div class="card"><span class="chip red">P3</span><h3 style="margin-top:10px">Weekends</h3><p class="muted" style="font-size:14px">1.3× the weekday rate</p></div>
+    <div class="card"><span class="chip red">P4</span><h3 style="margin-top:10px">PSP_D rounding</h3><p class="muted" style="font-size:14px">CLP/COP cross-border rounded down to 1,000</p></div>
+  </div>
+  <div class="row" style="flex-wrap:wrap;gap:10px;margin-bottom:22px">
+    <span class="chip cyan">X1 FX timing</span><span class="chip cyan">X2 Partial capture</span><span class="chip cyan">X3 PSP_C fee</span>
+    <span class="chip cyan">X4 Tax recalc</span><span class="chip cyan">X5 Fraud hold</span><span class="chip cyan">X6 PSP adjustment</span>
+    <span class="chip amber">Drift: PSP_C fee from month 3</span><span class="chip strike">Tips (ruled out)</span>
+  </div>
+  <table class="t">
+    <tr><th>Shape</th><th>Value</th><th>Shape</th><th>Value</th></tr>
+    <tr><td>Rows</td><td>135k (3 months) · 500 smoke</td><td>PSPs</td><td>PSP_A – PSP_E</td></tr>
+    <tr><td>Status</td><td>failed 4% · pending 3%</td><td>Cross-border</td><td>~20% (payer pays USD)</td></tr>
+    <tr><td>Lag</td><td>1–7 days + outliers</td><td>Gate</td><td><code>recon validate</code> checks every pattern</td></tr>
+  </table>
+</section>
+
+<!-- 14 · Root cause -->
+<section class="slide" data-title="Root cause">
+  <div class="kicker">13 · Root-cause analysis</div>
+  <h2>Five questions, answered with evidence</h2>
+  <div class="grid g3" style="gap:14px">
+    <div class="card"><div class="icon">🌎</div><h3>Country / currency</h3><p class="muted" style="font-size:14px">Rate + Wilson CI · chi²</p></div>
+    <div class="card"><div class="icon">🏦</div><h3>PSP</h3><p class="muted" style="font-size:14px">PSP × country heatmap · peer compare</p></div>
+    <div class="card"><div class="icon">📏</div><h3>Size</h3><p class="muted" style="font-size:14px">Rate by tier · Spearman · Mann-Whitney</p></div>
+    <div class="card"><div class="icon">🗓️</div><h3>Time</h3><p class="muted" style="font-size:14px">Weekday · weekend ratio · lag vs loss</p></div>
+    <div class="card"><div class="icon">🧩</div><h3>Systematic vs random</h3><p class="muted" style="font-size:14px">Signature table: cause × PSP × currency × sign</p></div>
+    <div class="card glow"><div class="icon">💰</div><h3>$ impact</h3><p class="muted" style="font-size:14px">Excess loss vs peers · Pareto sums to total</p></div>
+  </div>
+  <div class="card" style="margin-top:18px;border-left:3px solid var(--violet)">
+    <div class="faint" style="font-size:12px;letter-spacing:.1em;margin-bottom:6px">EVERY FINDING READS LIKE</div>
+    <div style="font-size:16px"><b>F#. Headline.</b> <span class="muted">X% on &lt;segment&gt; (n, 95% CI, vs peers, q-value) · $ impact / quarter · likely cause · action R#</span></div>
+  </div>
+</section>
+
+<!-- 15 · Monitoring -->
+<section class="slide" data-title="Monitoring">
+  <div class="kicker">14 · Monitoring</div>
+  <h2>Answer the brief's questions in one step</h2>
+  <div class="grid g2" style="gap:20px;margin-bottom:20px">
+    <div class="term"><span class="c"># "Which PSP had the worst week last month?"</span><br><span class="p">$</span> recon worst-week --month last</div>
+    <div class="term"><span class="c"># "Show me all discrepancies over $50"</span><br><span class="p">$</span> recon query --min-usd 50 --format csv</div>
+  </div>
+  <div class="grid g2" style="gap:20px">
+    <div class="card"><h3>📊 Dashboard · 5 pages</h3><ul class="clean">
+      <li><b>Overview</b>: KPIs, trend, worst-week card</li><li><b>Drill-down</b>: country, PSP, tier, cause</li>
+      <li><b>Outliers</b>: min $50, CSV export</li><li><b>Root causes &amp; actions</b></li><li><b>Alerts</b></li></ul></div>
+    <div class="card"><h3>🚨 Alerts · 6 rules</h3><div class="row" style="flex-wrap:wrap;gap:8px;margin:10px 0 12px">
+      <span class="chip">Peer</span><span class="chip">Change (p-chart)</span><span class="chip">Money leak</span>
+      <span class="chip">Large rows</span><span class="chip">Pending aging</span><span class="chip">Settle lag</span></div>
+      <ul class="clean"><li>Last <b>closed</b> week · n ≥ 50</li><li>NEW / ONGOING / RESOLVED, no state file</li><li>Slack optional, off by default</li></ul></div>
+  </div>
+</section>
+
+<!-- 16 · Diagram gallery -->
+<section class="slide" data-title="System design">
+  <div class="kicker">15 · System design</div>
+  <h2 style="margin-bottom:14px">Every part, drawn before it was built</h2>
+  <div class="tabs" id="galTabs"></div>
+  <div class="diagram fill" id="galFrame"></div>
+</section>
+
+<!-- 17 · Engineering practices -->
+<section class="slide" data-title="Practices">
+  <div class="kicker">16 · Engineering practices</div>
+  <h2>Built like production, sized like a prototype</h2>
+  <div class="grid g3" style="gap:16px">
+    <div class="card"><div class="icon">📜</div><h3>Data contract</h3><p class="muted" style="font-size:14px">One YAML; a test checks dbt matches it.</p></div>
+    <div class="card"><div class="icon">🧪</div><h3>Tests everywhere</h3><p class="muted" style="font-size:14px">dbt tests + pytest on math, categories, rules.</p></div>
+    <div class="card"><div class="icon">🔁</div><h3>Idempotent</h3><p class="muted" style="font-size:14px">Full rebuild; same input + seed → same output.</p></div>
+    <div class="card"><div class="icon">🔒</div><h3>Privacy</h3><p class="muted" style="font-size:14px">No PAN, tokenized IDs, BIN country only.</p></div>
+    <div class="card"><div class="icon">🧼</div><h3>Functional core</h3><p class="muted" style="font-size:14px">Pure functions; side effects only in adapters.</p></div>
+    <div class="card"><div class="icon">👀</div><h3>Observable</h3><p class="muted" style="font-size:14px">Row counts per layer; exit 5 on bad data.</p></div>
+  </div>
+  <div class="card" style="margin-top:16px;display:flex;gap:28px;align-items:center">
+    <b style="white-space:nowrap">Milestones</b>
+    <div class="row" style="gap:10px;flex:1">
+      <span class="chip green">M1 walking skeleton</span><span class="faint">→</span>
+      <span class="chip cyan">M2 validate · analysis · reports</span><span class="faint">→</span>
+      <span class="chip">M3 alerts · polish · Docker/CI</span>
+    </div>
+  </div>
+</section>
+
+<!-- 18 · Scale path -->
+<section class="slide" data-title="Scale path">
+  <div class="kicker">17 · Scale path</div>
+  <h2>Local today, Yuno stack tomorrow</h2>
+  <div class="grid fill" style="grid-template-columns:1fr 1.15fr;gap:24px">
+    <table class="t" style="align-self:start">
+      <tr><th>Local (built)</th><th>AWS (documented)</th></tr>
+      <tr><td>CSV in <code>data/raw</code></td><td>S3 + Iceberg</td></tr>
+      <tr><td>DuckDB</td><td>StarRocks</td></tr>
+      <tr><td>dbt-duckdb</td><td>dbt on StarRocks</td></tr>
+      <tr><td>Makefile</td><td>Airflow (MWAA)</td></tr>
+      <tr><td>Batch export</td><td>MSK + Flink streams</td></tr>
+      <tr><td>YAML evaluator</td><td>Airflow → SNS → Slack</td></tr>
+      <tr><td>Streamlit</td><td>BI on StarRocks + SSO</td></tr>
+    </table>
+    <div class="diagram" data-src="artifacts/yuno/architect/03-system-design/10-aws-solution.svg" data-cap="Proposed solution on AWS (scale path)"></div>
+  </div>
+</section>
+
+<!-- 19 · Close -->
+<section class="slide" data-title="Try it">
+  <div class="fill" style="display:flex;flex-direction:column;justify-content:center">
+    <div class="kicker">Try it</div>
+    <h1 style="font-size:64px;margin-bottom:28px">Three commands <span class="grad">to see it all</span></h1>
+    <div class="term" style="font-size:17px;max-width:760px">
+      <span class="p">$</span> cd casamarket-recon &amp;&amp; uv sync<br>
+      <span class="p">$</span> make all <span class="c">   # generate → build → validate → analyze → alerts → report</span><br>
+      <span class="p">$</span> make app <span class="c">   # http://localhost:8501</span>
+    </div>
+    <div class="row" style="margin-top:36px;gap:10px">
+      <span class="chip">Agents do the heavy lifting</span><span class="chip amber">Human owns every decision</span><span class="chip cyan">Evidence over opinion</span>
+    </div>
+    <p class="muted" style="margin-top:40px;font-size:20px">Thank you · Questions?</p>
+  </div>
+</section>
+
+</div></div>
+
+<button class="navbtn" id="prevBtn" aria-label="Previous slide">‹</button>
+<button class="navbtn" id="nextBtn" aria-label="Next slide">›</button>
+<div id="dots"></div>
+<div id="hint">← → navigate · F fullscreen</div>
+
+<div id="lightbox">
+  <div id="lbBar"><span id="lbCap"></span><div><button id="lbZoom">Zoom 2×</button><button id="lbOpen">Open file</button><button id="lbClose">Close ✕</button></div></div>
+  <div id="lbScroll"><img id="lbImg" alt=""></div>
+</div>
+
+<script>
+(() => {
+  const PHASE = {
+    Setup:{c:'#60a5fa'}, Research:{c:'#8b6cff'}, Review:{c:'#fbbf24'}, Planning:{c:'#f472b6'},
+    Design:{c:'#22d3ee'}, Docs:{c:'#a3e635'}, Decision:{c:'#f87171'}, Pipeline:{c:'#34d399'}
+  };
+  // Source: artifacts/yuno/orchestrator/02-timeline/02-timeline.md
+  const TIMELINE = [
+    ['001','16:00','Setup','Repository initialized','git init'],
+    ['002','16:00','Setup','Mitra agentic framework added','Agent team installed'],
+    ['003','16:00','Research','Scenario + playbook captured','Architect agent'],
+    ['004','16:00','Research','Requirements via party mode','Architect + Engineer'],
+    ['005','16:06','Review','ADR & requirements judged','Ready for planning?'],
+    ['006','16:16','Review','Quality check of decisions','One review round'],
+    ['007','16:29','Planning','Backend & frontend plans','Worked in parallel'],
+    ['008','16:30','Planning','Plan documents added','Impl plan + UI/UX plan'],
+    ['009','16:33','Design','System design diagrams','Architect, Engineer, Designer'],
+    ['010','16:38','Review','Plans judged vs goals & DoD','Scenario goals check'],
+    ['011','16:52','Docs','Build instructions written','Infra · backend · pipeline · UI'],
+    ['012','16:53','Decision','Half planning, half building','~1h think · ~1h build'],
+    ['013','17:06','Pipeline','Agent team started building','Plan → development'],
+  ];
+  const RUBRIC = [['Root-cause depth',25],['Pipeline quality',20],['Insight clarity',20],['Technical execution',15],['Test data realism',10],['Stretch & polish',10]];
+  const CATS = [['exact',67,'#3b4a7a','#e9edf7'],['',1,'#60a5fa'],['fx_tolerance',18,'#22d3ee'],['meaningful',10,'#fbbf24'],['large',4,'#f87171']];
+  const GALLERY = [
+    ['02-data-generation.svg','Data generation'],['03-data-pipeline.svg','dbt pipeline'],['04-analysis-reports.svg','Analysis & reports'],
+    ['05-alert-system.svg','Alerts'],['06-cli-and-dashboard.svg','CLI & dashboard'],['07-run-and-ci.svg','Run & CI']
+  ];
+  const DIR = 'artifacts/yuno/architect/03-system-design/';
+
+  // ---- timeline
+  const tl = document.getElementById('timeline');
+  const half = Math.ceil(TIMELINE.length / 2);
+  [TIMELINE.slice(0, half), TIMELINE.slice(half)].forEach((items, ci) => {
+    const col = document.createElement('div'); col.className = 'tl-col';
+    items.forEach(([n, t, p, title, sum], i) => {
+      const el = document.createElement('div'); el.className = 'tl-item';
+      el.style.setProperty('--dot', PHASE[p].c);
+      el.style.animationDelay = ((ci * half + i) * 70) + 'ms';
+      el.innerHTML = `<div class="tl-head"><span class="tl-num">#${n}</span><span class="tl-time">${t}</span>
+        <span class="chip" style="background:${PHASE[p].c}22;color:${PHASE[p].c};border-color:${PHASE[p].c}55;padding:2px 8px;font-size:11px">${p}</span></div>
+        <div class="tl-title">${title}</div><div class="tl-sum">${sum}</div>`;
+      col.appendChild(el);
+    });
+    tl.appendChild(col);
+  });
+  document.getElementById('tlLegend').innerHTML =
+    `<span class="faint" style="font-size:13px;margin-right:4px">29 Sep 2026 · CEST ·</span>` +
+    Object.entries(PHASE).map(([k, v]) => `<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-right:8px"><i style="width:9px;height:9px;border-radius:50%;background:${v.c}"></i>${k}</span>`).join('');
+
+  // ---- rubric bars
+  document.getElementById('rubric').insertAdjacentHTML('beforeend', RUBRIC.map(([k, v]) =>
+    `<div style="margin:11px 0"><div style="display:flex;justify-content:space-between;font-size:14.5px;margin-bottom:6px"><span>${k}</span><b>${v}</b></div>
+     <div style="height:8px;background:var(--bg2);border-radius:6px;overflow:hidden"><div style="width:${v * 4}%;height:100%;background:var(--grad);border-radius:6px"></div></div></div>`).join(''));
+
+  // ---- category bar
+  document.getElementById('catBar').innerHTML = CATS.map(([k, v, bg, fg]) =>
+    `<div style="flex:${v};background:${bg};color:${fg || '#0b1020'}" title="${k || 'rounding'} ${v}%">${v >= 15 ? `${k} ${v}%` : v >= 4 ? `${v}%` : ''}</div>`).join('');
+
+  // ---- diagrams
+  function mountDiagram(el, src, cap) {
+    el.dataset.src = src; el.dataset.cap = cap;
+    el.innerHTML = `<img alt="${cap}" src="${src}"><span class="zoom">🔍 click to zoom</span>`;
+    el.querySelector('img').onerror = () => {
+      el.innerHTML = `<div class="miss">Diagram not found:<br><code>${src}</code><br>Open this file from the repo root.</div>`;
+    };
+  }
+  document.querySelectorAll('.diagram[data-src]').forEach(el => mountDiagram(el, el.dataset.src, el.dataset.cap));
+  const tabs = document.getElementById('galTabs'), frame = document.getElementById('galFrame');
+  GALLERY.forEach(([f, cap], i) => {
+    const b = document.createElement('button'); b.className = 'tab' + (i ? '' : ' on'); b.textContent = cap;
+    b.onclick = () => { tabs.querySelectorAll('.tab').forEach(x => x.classList.remove('on')); b.classList.add('on'); mountDiagram(frame, DIR + f, cap); };
+    tabs.appendChild(b);
+  });
+  mountDiagram(frame, DIR + GALLERY[0][0], GALLERY[0][1]);
+
+  // ---- lightbox
+  const lb = document.getElementById('lightbox'), lbImg = document.getElementById('lbImg');
+  let zoomed = false;
+  document.addEventListener('click', e => {
+    const d = e.target.closest('.diagram');
+    if (!d || !d.querySelector('img')) return;
+    lbImg.src = d.dataset.src; document.getElementById('lbCap').textContent = d.dataset.cap;
+    zoomed = false; lbImg.style.width = '100%'; document.getElementById('lbZoom').textContent = 'Zoom 2×';
+    lb.classList.add('open');
+  });
+  const closeLb = () => lb.classList.remove('open');
+  document.getElementById('lbClose').onclick = closeLb;
+  document.getElementById('lbOpen').onclick = () => window.open(lbImg.src, '_blank');
+  document.getElementById('lbZoom').onclick = e => {
+    zoomed = !zoomed; lbImg.style.width = zoomed ? '200%' : '100%';
+    e.target.textContent = zoomed ? 'Fit' : 'Zoom 2×';
+  };
+
+  // ---- deck navigation
+  const slides = [...document.querySelectorAll('.slide')];
+  const dots = document.getElementById('dots');
+  slides.forEach((s, i) => {
+    s.insertAdjacentHTML('beforeend', `<div class="slide-foot"><span>CasaMarket Anomaly Hunt · ${s.dataset.title}</span><span>${String(i + 1).padStart(2, '0')} / ${slides.length}</span></div>`);
+    const b = document.createElement('button'); b.setAttribute('aria-label', 'Go to slide ' + (i + 1) + ': ' + s.dataset.title);
+    b.title = s.dataset.title; b.onclick = () => go(i); dots.appendChild(b);
+  });
+  let cur = -1;
+  function go(i) {
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    if (i === cur) return;
+    slides.forEach((s, k) => { s.classList.toggle('active', k === i); s.classList.toggle('prev', k < i); });
+    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
+    document.getElementById('progress').style.width = ((i + 1) / slides.length * 100) + '%';
+    cur = i; history.replaceState(null, '', '#' + (i + 1));
+  }
+  document.getElementById('prevBtn').onclick = () => go(cur - 1);
+  document.getElementById('nextBtn').onclick = () => go(cur + 1);
+  document.addEventListener('keydown', e => {
+    if (lb.classList.contains('open')) { if (e.key === 'Escape') closeLb(); return; }
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(slides.length - 1);
+    else if (e.key === 'f' || e.key === 'F') {
+      document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+    }
+  });
+  let tx = null;
+  document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (tx === null || lb.classList.contains('open')) return;
+    const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) go(cur + (dx < 0 ? 1 : -1)); tx = null;
+  });
+
+  // ---- scale 1280x720 stage to viewport
+  const stage = document.getElementById('stage');
+  function fit() {
+    const s = Math.min(innerWidth / 1280, innerHeight / 720) * 0.96;
+    stage.style.transform = `scale(${s})`;
+  }
+  addEventListener('resize', fit); fit();
+  go((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>
