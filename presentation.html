@@ -99,7 +99,7 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
 .diagram .miss{color:#334;font-size:13px;text-align:center;padding:20px}
 
 /* timeline */
-.tl{display:grid;grid-template-columns:1fr 1fr;gap:0 48px}
+.tl{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 34px}
 .tl-col{position:relative;padding-left:26px}
 .tl-col::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--violet),var(--cyan));opacity:.45}
 .tl-item{position:relative;margin-bottom:8px;opacity:0;transform:translateY(8px)}
@@ -174,11 +174,11 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
       <span class="chip">Yuno take-home</span><span class="chip cyan">Data engineering</span><span class="chip amber">Agents + human in the middle</span>
     </div>
     <h1>CasaMarket<br><span class="grad">Anomaly Hunt</span></h1>
-    <p class="lead" style="margin-top:22px">Finding the silent 18% revenue drain between <b style="color:var(--text)">authorized</b> and <b style="color:var(--text)">settled</b> payments, built by a Mitra agent team with a human at every gate.</p>
+    <p class="lead" style="margin-top:22px">Why 18% of approved payments settle for a different amount than <b style="color:var(--text)">authorized</b>, and where the ~$127k a quarter goes, built by a Mitra agent team with a human at every gate.</p>
     <div class="row" style="margin-top:44px;gap:34px;color:var(--muted);font-size:14px">
       <div><div class="faint" style="font-size:12px;letter-spacing:.1em">WHAT</div>Pipeline · Root cause · Monitoring</div>
       <div><div class="faint" style="font-size:12px;letter-spacing:.1em">HOW</div>Mitra multi-agent framework</div>
-      <div><div class="faint" style="font-size:12px;letter-spacing:.1em">BUDGET</div>~2 hours with AI</div>
+      <div><div class="faint" style="font-size:12px;letter-spacing:.1em">BUDGET</div>~2 h core with AI · extras after</div>
     </div>
   </div>
 </section>
@@ -257,7 +257,7 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
     <div class="gate"><div class="dia"><span>🎯</span></div><small>Judged vs<br>goals &amp; DoD</small></div>
     <div class="step"><div class="n">04</div><div class="s">Instructions</div><div class="d">Step-by-step guide<br>per owner</div></div>
     <div class="gate"><div class="dia"><span>✅</span></div><small>Reviewed<br>before code</small></div>
-    <div class="step" style="border-color:var(--cyan)"><div class="n">05</div><div class="s">Build</div><div class="d">M1 → M2 → M3<br>code + tests</div></div>
+    <div class="step" style="border-color:var(--cyan)"><div class="n">05</div><div class="s">Build</div><div class="d">M1 → M4 + local stacks<br>gap check · stable state</div></div>
   </div>
   <div class="grid g3" style="margin-top:34px">
     <div class="card"><div class="icon">🗂️</div><h3>Clear ownership</h3><p class="muted" style="font-size:14.5px">Every file has one owner: INFRA, BACKEND or FRONTEND.</p></div>
@@ -302,8 +302,8 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
     <div class="step" style="border-color:var(--cyan)"><div class="n">report</div><div class="s">Outputs</div><div class="d">FINDINGS · RECS<br>CLI · dashboard</div></div>
   </div>
   <div class="grid g3" style="margin-top:30px">
-    <div class="card"><h3>🎯 Frame</h3><ul class="clean"><li><b>Lean local build</b>, one command</li><li>Quality not cut for time</li><li>AWS scale path <b>documented only</b></li></ul></div>
-    <div class="card"><h3>🔁 Reproducible</h3><ul class="clean"><li>Full rebuild on every run</li><li>Same seed → <b>same bytes</b></li><li>Locked deps (<code>uv.lock</code>)</li></ul></div>
+    <div class="card"><h3>🎯 Frame</h3><ul class="clean"><li><b>Lean core</b>, one command</li><li>Optional local stacks: lake, <b>Airflow</b>, <b>Flink</b></li><li>AWS path <b>documented only</b></li></ul></div>
+    <div class="card"><h3>🔁 Reproducible</h3><ul class="clean"><li>Full rebuild by default, <code>--incremental</code> option</li><li>Same seed → <b>same bytes</b> (checked)</li><li>Locked deps (<code>uv.lock</code>)</li></ul></div>
     <div class="card"><h3>▶️ 3 run paths</h3><ul class="clean"><li><code>make all</code></li><li><code>uv run recon all</code></li><li><code>docker compose up</code></li></ul></div>
   </div>
 </section>
@@ -321,7 +321,7 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
   <h2>Chosen for correctness and simplicity</h2>
   <div class="grid g2 fill" style="gap:16px">
     <div class="card tech"><div class="top"><div class="icon">🦆</div><div><div class="nm">DuckDB</div><div class="ver">1.4.x LTS · one file</div></div></div>
-      <ul class="clean"><li><b>In-process</b>: no server, runs on a laptop</li><li>Columnar OLAP: full run in ~1 min at 135k rows</li><li>Real decimal &amp; time types</li></ul>
+      <ul class="clean"><li><b>In-process</b>: no server, runs on a laptop</li><li>Columnar OLAP: whole pipeline in <b>~12 s</b> at 135k rows</li><li>Real decimal &amp; time types</li></ul>
       <div class="vs"><span class="lbl">beat</span><span class="chip strike">SQLite</span><span class="chip strike">Postgres</span><span class="chip strike">Lakehouse</span></div></div>
     <div class="card tech"><div class="top"><div class="icon">🧱</div><div><div class="nm">dbt-core + dbt-duckdb</div><div class="ver">1.12 · 1.11</div></div></div>
       <ul class="clean"><li><b>Tests, contracts, lineage</b> = good DE practice</li><li>Layers: raw → staging → intermediate → marts</li><li>Models <b>port to Yuno's dbt</b> on StarRocks</li></ul>
@@ -349,8 +349,8 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
     <div class="card tech"><div class="top"><div class="icon">⌨️</div><div><div class="nm">Typer CLI</div><div class="ver">recon · 0.27.x</div></div></div>
       <ul class="clean"><li>Little code, typed flags, <code>--help</code></li><li>Clear exit codes: 0 · 1 · 2 · 5</li><li>Thin shell: <b>no metric logic in CLI</b></li></ul>
       <div class="vs"><span class="lbl">runner-up</span><span class="chip ghost">Click</span><span class="lbl" style="margin-left:6px">beat</span><span class="chip strike">argparse</span><span class="chip strike">Go / Rust</span></div></div>
-    <div class="card tech"><div class="top"><div class="icon">🚨</div><div><div class="nm">YAML rules + evaluator</div><div class="ver">~150 LOC · alerts.yaml</div></div></div>
-      <ul class="clean"><li><b>Rules are data</b>, easy to unit-test</li><li>Supports BH + weekly p-chart</li><li>Same code runs as an Airflow task later</li></ul>
+    <div class="card tech"><div class="top"><div class="icon">🚨</div><div><div class="nm">YAML rules + evaluator</div><div class="ver">alerts.yaml · history · outbox</div></div></div>
+      <ul class="clean"><li><b>Rules are data</b>, easy to unit-test</li><li>Supports BH + weekly p-chart</li><li>Runs as a task in the <b>local Airflow DAG</b></li></ul>
       <div class="vs"><span class="lbl">runner-up</span><span class="chip ghost">SQL in dbt</span><span class="lbl" style="margin-left:6px">beat</span><span class="chip strike">Prometheus</span><span class="chip strike">Soda / GX</span></div></div>
   </div>
 </section>
@@ -386,10 +386,10 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
   <div class="kicker">12 · Test data</div>
   <h2>Patterns planted on purpose, to prove we can find them</h2>
   <div class="grid g4" style="margin-bottom:18px">
-    <div class="card"><span class="chip red">P1</span><h3 style="margin-top:10px">PSP_B in Argentina</h3><p class="muted" style="font-size:14px">+3.5 pts meaningful rate vs peers</p></div>
-    <div class="card"><span class="chip red">P2</span><h3 style="margin-top:10px">Colombia &gt; $300</h3><p class="muted" style="font-size:14px">Settles 2–4 days later</p></div>
-    <div class="card"><span class="chip red">P3</span><h3 style="margin-top:10px">Weekends</h3><p class="muted" style="font-size:14px">1.3× the weekday rate</p></div>
-    <div class="card"><span class="chip red">P4</span><h3 style="margin-top:10px">PSP_D rounding</h3><p class="muted" style="font-size:14px">CLP/COP cross-border rounded down to 1,000</p></div>
+    <div class="card"><span class="chip red">P1</span><h3 style="margin-top:10px">PSP_B in Argentina</h3><p class="muted" style="font-size:14px">+3.5 pts vs peers<br><b style="color:var(--green)">found +2.9 pts (F6)</b></p></div>
+    <div class="card"><span class="chip red">P2</span><h3 style="margin-top:10px">Colombia &gt; $300</h3><p class="muted" style="font-size:14px">Settles 2–4 days later<br><b style="color:var(--green)">found +3.3 days (F13)</b></p></div>
+    <div class="card"><span class="chip red">P3</span><h3 style="margin-top:10px">Weekends</h3><p class="muted" style="font-size:14px">1.3× the weekday rate<br><b style="color:var(--green)">found 1.24× (F2)</b></p></div>
+    <div class="card"><span class="chip red">P4</span><h3 style="margin-top:10px">PSP_D rounding</h3><p class="muted" style="font-size:14px">CLP/COP cross-border rounded to 1,000<br><b style="color:var(--green)">found 100% (F11)</b></p></div>
   </div>
   <div class="row" style="flex-wrap:wrap;gap:10px;margin-bottom:22px">
     <span class="chip cyan">X1 FX timing</span><span class="chip cyan">X2 Partial capture</span><span class="chip cyan">X3 PSP_C fee</span>
@@ -399,7 +399,7 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
   <table class="t">
     <tr><th>Shape</th><th>Value</th><th>Shape</th><th>Value</th></tr>
     <tr><td>Rows</td><td>135k (3 months) · 500 smoke</td><td>PSPs</td><td>PSP_A – PSP_E</td></tr>
-    <tr><td>Status</td><td>failed 4% · pending 3%</td><td>Cross-border</td><td>~20% (payer pays USD)</td></tr>
+    <tr><td>Status</td><td>failed 4% · pending ~4%</td><td>Cross-border</td><td>~20% (payer pays USD)</td></tr>
     <tr><td>Lag</td><td>1–7 days + outliers</td><td>Gate</td><td><code>recon validate</code> checks every pattern</td></tr>
   </table>
 </section>
@@ -422,9 +422,37 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
   </div>
 </section>
 
+<!-- Results -->
+<section class="slide" data-title="Results">
+  <div class="kicker">14 · Results</div>
+  <h2 style="margin-bottom:18px">What we found in the quarter</h2>
+  <div class="grid g4" style="margin-bottom:18px;gap:14px">
+    <div class="card stat glow" style="padding:18px"><div class="num" style="color:var(--red);font-size:44px">$129k</div><div class="lbl">net loss found · brief says ~$127k</div></div>
+    <div class="card stat" style="padding:18px"><div class="num grad" style="font-size:44px">14.0%</div><div class="lbl">of 124k settled payments flagged</div></div>
+    <div class="card stat" style="padding:18px"><div class="num grad" style="font-size:44px">13</div><div class="lbl">findings with q &lt; 0.05 · 4/4 planted patterns found</div></div>
+    <div class="card stat" style="padding:18px"><div class="num" style="color:var(--green);font-size:44px">≥ 0.95</div><div class="lbl">cause-label precision &amp; recall vs truth</div></div>
+  </div>
+  <div class="grid g2" style="grid-template-columns:1.1fr 1fr;gap:20px">
+    <table class="t" style="font-size:14px">
+      <tr><th>Where the money goes</th><th>Net / quarter</th><th>Share</th></tr>
+      <tr><td>Partial capture</td><td>$77.9k</td><td>60%</td></tr>
+      <tr><td>PSP adjustment</td><td>$43.3k</td><td>33%</td></tr>
+      <tr><td>Fraud hold</td><td>$6.3k</td><td>5%</td></tr>
+      <tr><td>PSP fee · rounding · tax</td><td>$2.0k</td><td>2%</td></tr>
+      <tr><td class="muted">FX timing · tips</td><td class="muted">$0 · 0 rows</td><td class="muted">explained · ruled out</td></tr>
+    </table>
+    <div class="card" style="padding:16px 20px"><h3>Top actions (R#) · $ vs peers / quarter</h3><ul class="clean">
+      <li><b>R1</b> Reconcile partial captures &amp; holds to order changes · <b>$10.0k</b></li>
+      <li><b>R2</b> Dispute the new PSP_C per-transaction fee · <b>$1.1k</b></li>
+      <li><b>R3</b> Escalate PSP_B in AR (+2.9 pts vs peers) · <b>$0.6k</b></li>
+      <li><b>R4–R5</b> PSP_C in MX · PSP_B adjustments · <b>$0.8k</b></li></ul>
+      <div class="muted" style="font-size:13.5px;margin-top:8px">Worst PSP week last month: <b style="color:var(--text)">PSP_C, W23</b> · $2.9k net · 19% flagged</div></div>
+  </div>
+</section>
+
 <!-- 15 · Monitoring -->
 <section class="slide" data-title="Monitoring">
-  <div class="kicker">14 · Monitoring</div>
+  <div class="kicker">15 · Monitoring</div>
   <h2>Answer the brief's questions in one step</h2>
   <div class="grid g2" style="gap:20px;margin-bottom:20px">
     <div class="term"><span class="c"># "Which PSP had the worst week last month?"</span><br><span class="p">$</span> recon worst-week --month last</div>
@@ -437,13 +465,13 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
     <div class="card"><h3>🚨 Alerts · 6 rules</h3><div class="row" style="flex-wrap:wrap;gap:8px;margin:10px 0 12px">
       <span class="chip">Peer</span><span class="chip">Change (p-chart)</span><span class="chip">Money leak</span>
       <span class="chip">Large rows</span><span class="chip">Pending aging</span><span class="chip">Settle lag</span></div>
-      <ul class="clean"><li>Last <b>closed</b> week · n ≥ 50</li><li>NEW / ONGOING / RESOLVED, no state file</li><li>Slack optional, off by default</li></ul></div>
+      <ul class="clean"><li>Last <b>closed</b> week · n ≥ 50 · PSP-wide grouping</li><li>NEW / ONGOING / RESOLVED + <b>open since</b>, ack, mute</li><li>Local outbox after dedupe · Slack optional (off)</li></ul></div>
   </div>
 </section>
 
 <!-- 16 · Diagram gallery -->
 <section class="slide" data-title="System design">
-  <div class="kicker">15 · System design</div>
+  <div class="kicker">16 · System design</div>
   <h2 style="margin-bottom:14px">Every part, drawn before it was built</h2>
   <div class="tabs" id="galTabs"></div>
   <div class="diagram fill" id="galFrame"></div>
@@ -451,42 +479,62 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
 
 <!-- 17 · Engineering practices -->
 <section class="slide" data-title="Practices">
-  <div class="kicker">16 · Engineering practices</div>
+  <div class="kicker">17 · Engineering practices</div>
   <h2>Built like production, sized like a prototype</h2>
   <div class="grid g3" style="gap:16px">
     <div class="card"><div class="icon">📜</div><h3>Data contract</h3><p class="muted" style="font-size:14px">One YAML; a test checks dbt matches it.</p></div>
-    <div class="card"><div class="icon">🧪</div><h3>Tests everywhere</h3><p class="muted" style="font-size:14px">dbt tests + pytest on math, categories, rules.</p></div>
-    <div class="card"><div class="icon">🔁</div><h3>Idempotent</h3><p class="muted" style="font-size:14px">Full rebuild; same input + seed → same output.</p></div>
-    <div class="card"><div class="icon">🔒</div><h3>Privacy</h3><p class="muted" style="font-size:14px">No PAN, tokenized IDs, BIN country only.</p></div>
+    <div class="card"><div class="icon">🧪</div><h3>Tests everywhere</h3><p class="muted" style="font-size:14px"><b>81</b> dbt checks + <b>51</b> pytest on math, categories, rules.</p></div>
+    <div class="card"><div class="icon">🔁</div><h3>Idempotent</h3><p class="muted" style="font-size:14px">Two runs → <b>21 files byte-identical</b> (<code>make check-idempotent</code>).</p></div>
+    <div class="card"><div class="icon">🔒</div><h3>Privacy</h3><p class="muted" style="font-size:14px">No PAN, tokenized IDs; <code>recon ops pii-scan</code> fails on leaks.</p></div>
     <div class="card"><div class="icon">🧼</div><h3>Functional core</h3><p class="muted" style="font-size:14px">Pure functions; side effects only in adapters.</p></div>
-    <div class="card"><div class="icon">👀</div><h3>Observable</h3><p class="muted" style="font-size:14px">Row counts per layer; exit 5 on bad data.</p></div>
+    <div class="card"><div class="icon">👀</div><h3>Observable</h3><p class="muted" style="font-size:14px">Row counts per layer, ingest DQ, lineage; exit 5 on bad data.</p></div>
   </div>
   <div class="card" style="margin-top:16px;display:flex;gap:28px;align-items:center">
     <b style="white-space:nowrap">Milestones</b>
     <div class="row" style="gap:10px;flex:1">
       <span class="chip green">M1 walking skeleton</span><span class="faint">→</span>
       <span class="chip cyan">M2 validate · analysis · reports</span><span class="faint">→</span>
-      <span class="chip">M3 alerts · polish · Docker/CI</span>
+      <span class="chip">M3 alerts · Docker/CI</span><span class="faint">→</span><span class="chip amber">M4 lake · DQ · incremental</span><span class="faint">→</span><span class="chip red">Airflow · Flink (local)</span>
     </div>
   </div>
 </section>
 
 <!-- 18 · Scale path -->
 <section class="slide" data-title="Scale path">
-  <div class="kicker">17 · Scale path</div>
+  <div class="kicker">18 · Scale path</div>
   <h2>Local today, Yuno stack tomorrow</h2>
   <div class="grid fill" style="grid-template-columns:1fr 1.15fr;gap:24px">
     <table class="t" style="align-self:start">
       <tr><th>Local (built)</th><th>AWS (documented)</th></tr>
-      <tr><td>CSV in <code>data/raw</code></td><td>S3 + Iceberg</td></tr>
+      <tr><td>Per-PSP files → lake: landing · quarantine · staged parquet</td><td>S3 + Iceberg</td></tr>
       <tr><td>DuckDB</td><td>StarRocks</td></tr>
-      <tr><td>dbt-duckdb</td><td>dbt on StarRocks</td></tr>
-      <tr><td>Makefile</td><td>Airflow (MWAA)</td></tr>
-      <tr><td>Batch export</td><td>MSK + Flink streams</td></tr>
-      <tr><td>YAML evaluator</td><td>Airflow → SNS → Slack</td></tr>
+      <tr><td>dbt-duckdb · full + incremental</td><td>dbt on StarRocks</td></tr>
+      <tr><td>Airflow in Docker · daily + backfill DAGs</td><td>Airflow (MWAA)</td></tr>
+      <tr><td>Redpanda + Flink SQL · 100% match vs batch</td><td>MSK + Managed Flink</td></tr>
+      <tr><td>Alert evaluator + local outbox</td><td>Airflow → SNS → Slack</td></tr>
       <tr><td>Streamlit</td><td>BI on StarRocks + SSO</td></tr>
     </table>
     <div class="diagram" data-src="artifacts/yuno/architect/03-system-design/10-aws-solution.svg" data-cap="Proposed solution on AWS (scale path)"></div>
+  </div>
+</section>
+
+<!-- Limits -->
+<section class="slide" data-title="Limits & next">
+  <div class="kicker">19 · Honest limits</div>
+  <h2>What this does not prove yet</h2>
+  <div class="grid g2" style="gap:20px">
+    <div class="card"><h3>⚠️ Limits</h3><ul class="clean">
+      <li><b>Synthetic data</b>: the truth check scores our rules against the generator, not the real world</li>
+      <li>Action $ counts only <b>excess vs peers</b> (~$12k/qtr), not the whole $129k; most loss is structural</li>
+      <li>PSP adjustments (33% of loss) need PSP statements to explain, not just rates</li>
+      <li>The CFO's 18% flag rate is not reproduced (we flag 14%)</li>
+      <li>Optional stacks need 4–6 GB Docker; run one at a time on 2 GB</li></ul></div>
+    <div class="card"><h3>➡️ Next</h3><ul class="clean">
+      <li>Real PSP settlement files through <code>recon ingest</code> (per-PSP formats)</li>
+      <li>Order events to confirm partial captures (R1)</li>
+      <li>Dashboard shows alert history and "provisional" weeks</li>
+      <li>Real fee contracts in the dated <code>psp_fees</code> seed</li>
+      <li>Then the AWS path: S3/Iceberg, StarRocks, MWAA, Managed Flink</li></ul></div>
   </div>
 </section>
 
@@ -500,6 +548,7 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
       <span class="p">$</span> make all <span class="c">   # generate → build → validate → analyze → alerts → report</span><br>
       <span class="p">$</span> make app <span class="c">   # http://localhost:8501</span>
     </div>
+    <div class="muted" style="margin-top:14px;font-size:14.5px">Optional (local): <code>make lake</code> · <code>make airflow-up</code> · <code>make stream-up stream-job stream-replay stream-compare</code></div>
     <div class="row" style="margin-top:36px;gap:10px">
       <span class="chip">Agents do the heavy lifting</span><span class="chip amber">Human owns every decision</span><span class="chip cyan">Evidence over opinion</span>
     </div>
@@ -540,6 +589,14 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
     ['011','16:52','Docs','Build instructions written','Infra · backend · pipeline · UI'],
     ['012','16:53','Decision','Half planning, half building','~1h think · ~1h build'],
     ['013','17:06','Pipeline','Agent team started building','Plan → development'],
+    ['014','17:23','Pipeline','M1 walking skeleton','Generator · dbt · CLI · dashboard'],
+    ['015','17:29','Pipeline','M2 analysis & reports','Validate gate · findings · pages'],
+    ['016','17:38','Pipeline','M3 alerts & docs','Alerts page · README · Docker · CI'],
+    ['017','17:43','Review','Alert noise tuned','PSP-wide grouping · leak limits'],
+    ['018','17:49','Planning','Gap check → M4 plan','Open items vs plans · owners'],
+    ['019','18:08','Pipeline','M4 local data architecture','Lake · DQ · incremental · alert memory'],
+    ['020','18:31','Pipeline','Streaming: Redpanda + Flink','100% category match vs batch'],
+    ['021','18:44','Review','Stable state','Airflow 8/8 · all checks green'],
   ];
   const RUBRIC = [['Root-cause depth',25],['Pipeline quality',20],['Insight clarity',20],['Technical execution',15],['Test data realism',10],['Stretch & polish',10]];
   const CATS = [['exact',67,'#3b4a7a','#e9edf7'],['',1,'#60a5fa'],['fx_tolerance',18,'#22d3ee'],['meaningful',10,'#fbbf24'],['large',4,'#f87171']];
@@ -551,8 +608,8 @@ table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:15px;bord
 
   // ---- timeline
   const tl = document.getElementById('timeline');
-  const half = Math.ceil(TIMELINE.length / 2);
-  [TIMELINE.slice(0, half), TIMELINE.slice(half)].forEach((items, ci) => {
+  const half = Math.ceil(TIMELINE.length / 3);
+  [0, 1, 2].map(k => TIMELINE.slice(k * half, (k + 1) * half)).forEach((items, ci) => {
     const col = document.createElement('div'); col.className = 'tl-col';
     items.forEach(([n, t, p, title, sum], i) => {
       const el = document.createElement('div'); el.className = 'tl-item';
