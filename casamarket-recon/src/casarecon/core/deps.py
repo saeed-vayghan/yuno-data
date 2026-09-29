@@ -25,7 +25,8 @@ def get_files() -> ReportFiles:
     from casarecon.adapters import files
 
     return SimpleNamespace(**{n: getattr(files, n) for n in (
-        "read_json", "write_json", "read_text", "write_text", "read_jsonl", "write_jsonl")})
+        "read_json", "write_json", "read_text", "write_text", "read_jsonl", "write_jsonl",
+        "read_csv", "write_csv", "read_parquet", "write_figures")})
 
 
 def get_notifier() -> Notifier:

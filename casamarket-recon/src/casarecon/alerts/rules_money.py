@@ -1,6 +1,6 @@
 """Money rules: money_leak, large_rows, pending_aging. Pure: (RuleInput, cfg, week) -> alert dicts."""
 
-from casarecon.alerts.record import RuleInput, insufficient, record, seg_of, usd
+from casarecon.alerts.record import RuleInput, insufficient, pct, record, seg_of, usd
 
 
 def money_leak(data: RuleInput, cfg: dict, week: str) -> list[dict]:
@@ -37,21 +37,28 @@ def large_rows(data: RuleInput, cfg: dict, week: str) -> list[dict]:
                    message=f"{n_large} large rows ({usd(total)} absolute) in {week}; top: {tops}.")]
 
 
+PENDING_DEFAULTS = {"age_days": 7, "warn_share": 0.10, "crit_share": 0.25}  # until alerts.yaml has them
+
+
+def pending_limits(cfg: dict) -> dict:
+    return {k: cfg.get(k, v) for k, v in PENDING_DEFAULTS.items()}
+
+
 def pending_aging(data: RuleInput, cfg: dict, week: str) -> list[dict]:
-    """PSP x country oldest pending age vs as_of: > warn_days SEV3, > crit_days SEV2.
-    Segments with < min_n pending rows are INSUFFICIENT_DATA (so a 500-row smoke run never fires)."""
+    """PSP x country share of pending rows older than age_days (vs as_of): >= warn_share SEV3,
+    >= crit_share SEV2. Measured at as_of over all pending rows; < min_n pending -> INSUFFICIENT_DATA."""
+    lim = pending_limits(cfg)
+    g = data.frame.groupby(["psp", "country"], as_index=False)[["n_open", "n_open_old"]].sum()
     out = []
-    for r in data.pending.itertuples():
-        age, seg = float(r.oldest_age_days), seg_of(r.psp, r.country)
-        if r.n < data.min_n:
-            out.append(insufficient(cfg, week, seg, r.n, data.min_n, psp=r.psp, country=r.country))
-            continue
-        if age <= cfg["warn_days"]:
-            continue
-        crit = age > cfg["crit_days"]
-        out.append(record(cfg, week, seg, psp=r.psp, country=r.country,
-                          severity="SEV2" if crit else "SEV3", n=r.n, value=age,
-                          threshold=cfg["crit_days"] if crit else cfg["warn_days"],
-                          message=f"{r.n} pending rows in {r.psp} {r.country} ({usd(r.amount_usd)}); "
-                                  f"oldest is {age:.1f} days old."))
+    for r in g[g["n_open"] > 0].itertuples():
+        seg, share = seg_of(r.psp, r.country), r.n_open_old / r.n_open
+        if r.n_open < data.min_n:
+            out.append(insufficient(cfg, week, seg, r.n_open, data.min_n, psp=r.psp, country=r.country))
+        elif share >= lim["warn_share"]:
+            crit = share >= lim["crit_share"]
+            out.append(record(cfg, week, seg, psp=r.psp, country=r.country,
+                              severity="SEV2" if crit else "SEV3", n=r.n_open, value=share,
+                              threshold=lim["crit_share"] if crit else lim["warn_share"],
+                              message=f"{pct(share)} of {r.n_open} pending rows in {r.psp} {r.country} "
+                                      f"are older than {lim['age_days']} days."))
     return out

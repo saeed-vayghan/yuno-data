@@ -1,0 +1,531 @@
+{
+  "as_of": "2026-06-30T23:58:00",
+  "findings": [
+    {
+      "ci": [
+        0.165686,
+        0.171906
+      ],
+      "country": null,
+      "figure": "figures/f1_partial_capture.png",
+      "headline": "Multi-item orders flag more often (partial captures)",
+      "id": "F1",
+      "key": "partial_capture",
+      "kind": "partial_capture",
+      "lift": 1.446533,
+      "likely_cause": "partial_capture",
+      "metric": "flag rate",
+      "n": 55702,
+      "n_flagged": 9401,
+      "peer_rate": 0.116674,
+      "psp": null,
+      "q": 0.0,
+      "rate": 0.168773,
+      "segment": "item_count >= 2",
+      "share_of_loss": 0.250971,
+      "usd_median": 5.56,
+      "usd_note": null,
+      "usd_quarter": 58875.193957
+    },
+    {
+      "ci": [
+        0.160251,
+        0.167951
+      ],
+      "country": null,
+      "figure": "figures/f2_weekend.png",
+      "headline": "Weekend authorizations flag more often than weekday ones",
+      "id": "F2",
+      "key": "weekend",
+      "kind": "weekend",
+      "lift": 1.25838,
+      "likely_cause": "psp_adjustment",
+      "metric": "flag rate",
+      "n": 35547,
+      "n_flagged": 5832,
+      "peer_rate": 0.130378,
+      "psp": null,
+      "q": 0.0,
+      "rate": 0.164064,
+      "segment": "weekend",
+      "share_of_loss": 0.065593,
+      "usd_median": 3.61,
+      "usd_note": null,
+      "usd_quarter": 15387.491418
+    },
+    {
+      "ci": [
+        0.341013,
+        0.372497
+      ],
+      "country": null,
+      "figure": "figures/f3_fraud_hold.png",
+      "headline": "High-risk orders flag more often (fraud holds)",
+      "id": "F3",
+      "key": "fraud_hold",
+      "kind": "fraud_hold",
+      "lift": 2.66845,
+      "likely_cause": "fraud_hold",
+      "metric": "flag rate",
+      "n": 3553,
+      "n_flagged": 1267,
+      "peer_rate": 0.133636,
+      "psp": null,
+      "q": 0.0,
+      "rate": 0.3566,
+      "segment": "risk_score >= 0.8",
+      "share_of_loss": 0.055431,
+      "usd_median": 6.98,
+      "usd_note": null,
+      "usd_quarter": 13003.629759
+    },
+    {
+      "ci": [
+        0.032559,
+        0.039106
+      ],
+      "country": null,
+      "figure": "figures/f4_psp_e_partial_capture.png",
+      "headline": "PSP_E carries a disproportionate share of `partial_capture` gaps",
+      "id": "F4",
+      "key": "psp_e_partial_capture",
+      "kind": "cause_psp",
+      "lift": 1.152892,
+      "likely_cause": "partial_capture",
+      "metric": "partial_capture share",
+      "n": 12357,
+      "n_flagged": 441,
+      "peer_rate": 0.030955,
+      "psp": "PSP_E",
+      "q": 0.013302,
+      "rate": 0.035688,
+      "segment": "PSP_E|partial_capture",
+      "share_of_loss": 0.011418,
+      "usd_median": 24.48,
+      "usd_note": null,
+      "usd_quarter": 2678.438024
+    },
+    {
+      "ci": [
+        0.158683,
+        0.177334
+      ],
+      "country": "AR",
+      "figure": "figures/f5_psp_b_ar_peer.png",
+      "headline": "PSP_B in AR flags more often than other PSPs in AR",
+      "id": "F5",
+      "key": "psp_b_ar_peer",
+      "kind": "peer",
+      "lift": 1.22707,
+      "likely_cause": "psp_adjustment",
+      "metric": "flag rate",
+      "n": 6168,
+      "n_flagged": 1035,
+      "peer_rate": 0.13675,
+      "psp": "PSP_B",
+      "q": 0.0,
+      "rate": 0.167802,
+      "segment": "PSP_B|AR",
+      "share_of_loss": 0.008042,
+      "usd_median": 3.24,
+      "usd_note": null,
+      "usd_quarter": 1886.540901
+    },
+    {
+      "ci": [
+        0.14096,
+        0.154979
+      ],
+      "country": "MX",
+      "figure": "figures/f6_psp_c_mx_peer.png",
+      "headline": "PSP_C in MX flags more often than other PSPs in MX",
+      "id": "F6",
+      "key": "psp_c_mx_peer",
+      "kind": "peer",
+      "lift": 1.075818,
+      "likely_cause": "psp_adjustment",
+      "metric": "flag rate",
+      "n": 9849,
+      "n_flagged": 1456,
+      "peer_rate": 0.137414,
+      "psp": "PSP_C",
+      "q": 0.021538,
+      "rate": 0.147832,
+      "segment": "PSP_C|MX",
+      "share_of_loss": 0.006211,
+      "usd_median": 3.58,
+      "usd_note": null,
+      "usd_quarter": 1457.082821
+    },
+    {
+      "ci": [
+        0.035813,
+        0.040593
+      ],
+      "country": null,
+      "figure": "figures/f7_psp_c_fee.png",
+      "headline": "PSP_C carries a disproportionate share of `psp_fee` gaps",
+      "id": "F7",
+      "key": "psp_c_fee",
+      "kind": "cause_psp",
+      "lift": null,
+      "likely_cause": "psp_fee",
+      "metric": "psp_fee share",
+      "n": 24678,
+      "n_flagged": 941,
+      "peer_rate": 0.0,
+      "psp": "PSP_C",
+      "q": 0.0,
+      "rate": 0.038131,
+      "segment": "PSP_C|psp_fee",
+      "share_of_loss": 0.006182,
+      "usd_median": 1.5,
+      "usd_note": null,
+      "usd_quarter": 1450.15
+    },
+    {
+      "ci": [
+        0.117501,
+        0.132417
+      ],
+      "country": null,
+      "figure": "figures/f8_psp_c_fee_drift.png",
+      "headline": "PSP_C fee gaps jumped in 2026-06 vs earlier months",
+      "id": "F8",
+      "key": "psp_c_fee_drift",
+      "kind": "fee_drift",
+      "lift": null,
+      "likely_cause": "psp_fee",
+      "metric": "psp_fee share, last month vs earlier",
+      "n": 7542,
+      "n_flagged": 941,
+      "peer_rate": 0.0,
+      "psp": "PSP_C",
+      "q": 0.0,
+      "rate": 0.124768,
+      "segment": "PSP_C|2026-06",
+      "share_of_loss": 0.006182,
+      "usd_median": 1.5,
+      "usd_note": null,
+      "usd_quarter": 1450.15
+    },
+    {
+      "ci": [
+        0.373466,
+        0.41807
+      ],
+      "country": "CO",
+      "figure": "figures/f9_co_over_300_lag.png",
+      "headline": "CO orders over $300 settle late more often than other CO orders",
+      "id": "F9",
+      "key": "co_over_300_lag",
+      "kind": "lag",
+      "lift": 22.129116,
+      "likely_cause": null,
+      "metric": "late share",
+      "n": 1843,
+      "n_flagged": 729,
+      "peer_rate": 0.017875,
+      "psp": null,
+      "q": 0.0,
+      "rate": 0.395551,
+      "segment": "CO|over_300",
+      "share_of_loss": 0.005363,
+      "usd_median": 16.98,
+      "usd_note": "delay, not loss",
+      "usd_quarter": 1258.079336
+    },
+    {
+      "ci": [
+        0.140652,
+        0.158381
+      ],
+      "country": "CO",
+      "figure": "figures/f10_psp_c_co_peer.png",
+      "headline": "PSP_C in CO flags more often than other PSPs in CO",
+      "id": "F10",
+      "key": "psp_c_co_peer",
+      "kind": "peer",
+      "lift": 1.110285,
+      "likely_cause": "psp_adjustment",
+      "metric": "flag rate",
+      "n": 6209,
+      "n_flagged": 927,
+      "peer_rate": 0.134469,
+      "psp": "PSP_C",
+      "q": 0.007598,
+      "rate": 0.149299,
+      "segment": "PSP_C|CO",
+      "share_of_loss": 0.004793,
+      "usd_median": 3.69,
+      "usd_note": null,
+      "usd_quarter": 1124.285237
+    },
+    {
+      "ci": [
+        0.100434,
+        0.107218
+      ],
+      "country": null,
+      "figure": "figures/f11_psp_b_adjustment.png",
+      "headline": "PSP_B carries a disproportionate share of `psp_adjustment` gaps",
+      "id": "F11",
+      "key": "psp_b_adjustment",
+      "kind": "cause_psp",
+      "lift": 1.071784,
+      "likely_cause": "psp_adjustment",
+      "metric": "psp_adjustment share",
+      "n": 31057,
+      "n_flagged": 3223,
+      "peer_rate": 0.096826,
+      "psp": "PSP_B",
+      "q": 0.001348,
+      "rate": 0.103777,
+      "segment": "PSP_B|psp_adjustment",
+      "share_of_loss": 0.003418,
+      "usd_median": 2.1,
+      "usd_note": null,
+      "usd_quarter": 801.943495
+    },
+    {
+      "ci": [
+        0.141257,
+        0.166548
+      ],
+      "country": "CO",
+      "figure": "figures/f12_psp_e_co_peer.png",
+      "headline": "PSP_E in CO flags more often than other PSPs in CO",
+      "id": "F12",
+      "key": "psp_e_co_peer",
+      "kind": "peer",
+      "lift": 1.131594,
+      "likely_cause": "psp_adjustment",
+      "metric": "flag rate",
+      "n": 3121,
+      "n_flagged": 479,
+      "peer_rate": 0.135629,
+      "psp": "PSP_E",
+      "q": 0.018264,
+      "rate": 0.153476,
+      "segment": "PSP_E|CO",
+      "share_of_loss": 0.00327,
+      "usd_median": 4.06,
+      "usd_note": null,
+      "usd_quarter": 767.032024
+    },
+    {
+      "ci": [
+        0.08599,
+        0.094169
+      ],
+      "country": null,
+      "figure": "figures/f13_psp_d_rounding.png",
+      "headline": "PSP_D carries a disproportionate share of `psp_rounding` gaps",
+      "id": "F13",
+      "key": "psp_d_rounding",
+      "kind": "cause_psp",
+      "lift": 7.871981,
+      "likely_cause": "psp_rounding",
+      "metric": "psp_rounding share",
+      "n": 18812,
+      "n_flagged": 1693,
+      "peer_rate": 0.011432,
+      "psp": "PSP_D",
+      "q": 0.0,
+      "rate": 0.089996,
+      "segment": "PSP_D|psp_rounding",
+      "share_of_loss": 0.001558,
+      "usd_median": 0.15,
+      "usd_note": null,
+      "usd_quarter": 365.528814
+    }
+  ],
+  "not_significant": [
+    {
+      "key": "psp_c_cl_peer",
+      "lift": 1.108424,
+      "metric": "flag rate",
+      "q": 0.055463,
+      "segment": "PSP_C|CL"
+    },
+    {
+      "key": "psp_c_adjustment",
+      "lift": 1.041729,
+      "metric": "psp_adjustment share",
+      "q": 0.127683,
+      "segment": "PSP_C|psp_adjustment"
+    },
+    {
+      "key": "psp_b_tax_recalc",
+      "lift": 1.167427,
+      "metric": "tax_recalc share",
+      "q": 0.236498,
+      "segment": "PSP_B|tax_recalc"
+    },
+    {
+      "key": "psp_a_fraud_hold",
+      "lift": 1.097361,
+      "metric": "fraud_hold share",
+      "q": 0.378382,
+      "segment": "PSP_A|fraud_hold"
+    },
+    {
+      "key": "psp_d_cl_peer",
+      "lift": 1.061228,
+      "metric": "flag rate",
+      "q": 0.417681,
+      "segment": "PSP_D|CL"
+    },
+    {
+      "key": "cl_over_300_lag",
+      "lift": 1.087578,
+      "metric": "late share",
+      "q": 0.478026,
+      "segment": "CL|over_300"
+    },
+    {
+      "key": "psp_b_partial_capture",
+      "lift": 1.040017,
+      "metric": "partial_capture share",
+      "q": 0.478026,
+      "segment": "PSP_B|partial_capture"
+    },
+    {
+      "key": "psp_c_ar_peer",
+      "lift": 1.024453,
+      "metric": "flag rate",
+      "q": 0.706152,
+      "segment": "PSP_C|AR"
+    },
+    {
+      "key": "psp_b_fraud_hold",
+      "lift": 1.044485,
+      "metric": "fraud_hold share",
+      "q": 0.763375,
+      "segment": "PSP_B|fraud_hold"
+    },
+    {
+      "key": "mx_over_300_lag",
+      "lift": 1.007434,
+      "metric": "late share",
+      "q": 0.812448,
+      "segment": "MX|over_300"
+    }
+  ],
+  "summary": {
+    "causes": [
+      {
+        "gross_over_usd": 0.0,
+        "gross_under_usd": 171110.5,
+        "likely_cause": "partial_capture",
+        "n": 3909,
+        "n_flagged": 3909,
+        "net_usd": 171110.5,
+        "share_of_loss": 0.729405
+      },
+      {
+        "gross_over_usd": 0.0,
+        "gross_under_usd": 46190.05,
+        "likely_cause": "psp_adjustment",
+        "n": 12260,
+        "n_flagged": 12260,
+        "net_usd": 46190.05,
+        "share_of_loss": 0.196898
+      },
+      {
+        "gross_over_usd": 0.0,
+        "gross_under_usd": 15128.3,
+        "likely_cause": "fraud_hold",
+        "n": 884,
+        "n_flagged": 884,
+        "net_usd": 15128.3,
+        "share_of_loss": 0.064488
+      },
+      {
+        "gross_over_usd": 0.0,
+        "gross_under_usd": 1450.15,
+        "likely_cause": "psp_fee",
+        "n": 941,
+        "n_flagged": 212,
+        "net_usd": 1450.15,
+        "share_of_loss": 0.006182
+      },
+      {
+        "gross_over_usd": 0.0,
+        "gross_under_usd": 418.72,
+        "likely_cause": "psp_rounding",
+        "n": 2900,
+        "n_flagged": 150,
+        "net_usd": 418.72,
+        "share_of_loss": 0.001785
+      },
+      {
+        "gross_over_usd": 319.44,
+        "gross_under_usd": 291.45,
+        "likely_cause": "tax_recalc",
+        "n": 554,
+        "n_flagged": 0,
+        "net_usd": -27.99,
+        "share_of_loss": 0.001242
+      },
+      {
+        "gross_over_usd": 0.0,
+        "gross_under_usd": 0.0,
+        "likely_cause": "fx_timing",
+        "n": 19527,
+        "n_flagged": 0,
+        "net_usd": 0.0,
+        "share_of_loss": 0.0
+      },
+      {
+        "gross_over_usd": 0.0,
+        "gross_under_usd": 0.0,
+        "likely_cause": "tip",
+        "n": 0,
+        "n_flagged": 0,
+        "net_usd": 0.0,
+        "share_of_loss": 0.0
+      },
+      {
+        "gross_over_usd": 0.0,
+        "gross_under_usd": 0.0,
+        "likely_cause": "unexplained",
+        "n": 0,
+        "n_flagged": 0,
+        "net_usd": 0.0,
+        "share_of_loss": 0.0
+      }
+    ],
+    "cfo_estimate_usd": 127000,
+    "flag_rate": 0.140004,
+    "glm_dropped": [],
+    "gross_over_usd": 319.44,
+    "gross_under_usd": 234589.33,
+    "n_flagged": 17415,
+    "n_rows": 124389,
+    "net_usd": 234269.89,
+    "non_exact_rate": 0.32941,
+    "tip_rows": 0,
+    "truth_min": 0.950345,
+    "unexplained_rows": 0,
+    "window": {
+      "from": "2026-04",
+      "months": 3,
+      "to": "2026-06"
+    },
+    "worst_week": {
+      "auth_week": "2026-W23",
+      "gross_under_usd": 5063.76,
+      "low_sample": false,
+      "n": 3003,
+      "n_flagged": 416,
+      "n_large": 122,
+      "net_usd": 5055.54,
+      "psp": "PSP_A",
+      "rank": 1,
+      "rate": 0.138528,
+      "week_end": "2026-06-07",
+      "week_start": "2026-06-01"
+    }
+  }
+}

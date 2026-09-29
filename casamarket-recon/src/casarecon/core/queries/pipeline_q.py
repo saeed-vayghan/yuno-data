@@ -1,11 +1,11 @@
-"""Core contract rows 1-10 (Core tier). Owner: INFRA. M1: rows 1-6; M2: rows 7-10.
+"""Core contract rows 1-6 (Core tier). Owner: INFRA. Rows 7-10 live in pipeline_q2.py.
 
 Every function: get the store (arg or deps.get_store()), run one parameterized SQL on a mart,
 return a DataFrame / dict. Never string-format user values into SQL.
 """
 
 from contextlib import AbstractContextManager
-from typing import Any, Literal
+from typing import Any
 
 import pandas as pd
 
@@ -27,10 +27,6 @@ TXN_COLUMNS: tuple[str, ...] = (
     "abs_residual_usd", "residual_pct", "direction", "settle_lag_days",
 )
 _TXN_SELECT = ", ".join("customer_id" if c == "customer" else c for c in TXN_COLUMNS)
-
-SegmentDim = Literal["country", "currency", "psp", "psp_country", "amount_tier", "country_tier",
-                     "weekday", "is_weekend", "lag_bucket", "cross_border"]
-
 
 def connect(*, store: Store | None = None) -> AbstractContextManager[Any]:
     """#1 Read-only connection context manager. Raises DbMissing, DbBusy."""
@@ -119,27 +115,3 @@ def query_transactions(filters: Filters | None = None, min_usd: float | None = N
     df = (store or get_store()).query(sql, params)
     df.insert(df.columns.get_loc("customer_id"), "customer", df.pop("customer_id").map(mask_id))
     return df[list(TXN_COLUMNS)]
-
-
-def segment_rates(dim: SegmentDim, filters: Filters | None = None, *,
-                  store: Store | None = None) -> pd.DataFrame:
-    """#7 cols: segment_type, segment_value, n, n_flagged, rate, ci_low, ci_high, peer_rate, lift,
-    n_large, gross_under_usd, gross_over_usd, net_usd, mean_loss_usd, median_loss_usd, low_sample."""
-    raise NotImplementedError("M2")
-
-
-def cause_summary(filters: Filters | None = None, *, store: Store | None = None) -> pd.DataFrame:
-    """#8 cols: likely_cause, n, n_flagged, gross_under_usd, gross_over_usd, net_usd, share_of_loss.
-    Sorted gross_under_usd desc; one row per cause label (0 rows = ruled out)."""
-    raise NotImplementedError("M2")
-
-
-def excess_loss(top: int | None = None, *, store: Store | None = None) -> pd.DataFrame:
-    """#9 cols: psp, country, n, rate, peer_rate, lift, excess_usd, mean_loss_usd, median_loss_usd.
-    Sorted excess_usd desc; peer = other PSPs in the same country."""
-    raise NotImplementedError("M2")
-
-
-def lag_by_country_tier(*, store: Store | None = None) -> pd.DataFrame:
-    """#10 cols: country, amount_tier, is_over_300, n, median_lag_days, p90_lag_days, late_share."""
-    raise NotImplementedError("M2")

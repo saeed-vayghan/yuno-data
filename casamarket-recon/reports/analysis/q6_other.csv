@@ -1,0 +1,10 @@
+question,key,kind,segment_type,segment_value,psp,country,likely_cause,metric,n,n_flagged,rate,ci_low,ci_high,peer_n,peer_rate,lift,p,q,excess_usd,mean_loss_usd,median_loss_usd,usd_note
+Q6,,,cross_border,false,,,,flag rate,99342,13999.0,0.140917,0.138767,0.143095,25047.0,0.136384,1.033242,0.066103,0.143774,6098.152303,13.54,3.74,
+Q6,cross_border,cross_border,cross_border,true,,,psp_adjustment,flag rate,25047,3416.0,0.136384,0.132189,0.14069,99342.0,0.140917,0.967828,0.066103,0.143774,0.0,12.69,3.23,
+Q6,partial_capture,partial_capture,item_count,item_count >= 2,,,partial_capture,flag rate,55702,9401.0,0.168773,0.165686,0.171906,68687.0,0.116674,1.446533,0.0,0.0,58875.193957,20.287699,5.56,
+Q6,fraud_hold,fraud_hold,risk_score,risk_score >= 0.8,,,fraud_hold,flag rate,3553,1267.0,0.3566,0.341013,0.372497,120836.0,0.133636,2.66845,0.0,0.0,13003.629759,16.414736,6.98,
+Q6,psp_a_fee_drift,fee_drift,fee_drift,PSP_A|2026-06,PSP_A,,psp_fee,"psp_fee share, last month vs earlier",11266,0.0,0.0,0.0,0.000341,26219.0,0.0,,1.0,1.0,0.0,0.0,0.0,
+Q6,psp_b_fee_drift,fee_drift,fee_drift,PSP_B|2026-06,PSP_B,,psp_fee,"psp_fee share, last month vs earlier",9382,0.0,0.0,0.0,0.000409,21675.0,0.0,,1.0,1.0,0.0,0.0,0.0,
+Q6,psp_c_fee_drift,fee_drift,fee_drift,PSP_C|2026-06,PSP_C,,psp_fee,"psp_fee share, last month vs earlier",7542,941.0,0.124768,0.117501,0.132417,17136.0,0.0,,0.0,0.0,1450.15,1.541073,1.5,
+Q6,psp_d_fee_drift,fee_drift,fee_drift,PSP_D|2026-06,PSP_D,,psp_fee,"psp_fee share, last month vs earlier",5702,0.0,0.0,0.0,0.000673,13110.0,0.0,,1.0,1.0,0.0,0.0,0.0,
+Q6,psp_e_fee_drift,fee_drift,fee_drift,PSP_E|2026-06,PSP_E,,psp_fee,"psp_fee share, last month vs earlier",3726,0.0,0.0,0.0,0.00103,8631.0,0.0,,1.0,1.0,0.0,0.0,0.0,

@@ -11,6 +11,19 @@ CATEGORY_COLORS = {"exact": "#8C8C8C", "rounding": "#56B4E9", "fx_tolerance": "#
 CATEGORY_LABELS = {"exact": "Exact", "rounding": "Rounding", "fx_tolerance": "FX noise",
                    "meaningful": "Meaningful", "large": "Large"}
 CATEGORY_ORDER = ["exact", "rounding", "fx_tolerance", "meaningful", "large"]
+# cause code -> (plain label, one-line meaning); UI text only (designer file 06)
+CAUSES = {
+    "fx_timing": ("FX timing",
+                  "Cross-border rate moved between auth and settle beyond the expected move."),
+    "psp_rounding": ("PSP rounding", "Settled amount rounded down to a multiple of 1,000 units."),
+    "partial_capture": ("Partial capture", "Only some items were captured."),
+    "psp_fee": ("PSP fee", "A fixed fee deducted at settlement."),
+    "tax_recalc": ("Tax recalculation", "VAT share changed after the final invoice (MX, CO)."),
+    "fraud_hold": ("Fraud hold", "Part of the funds withheld after a risk check."),
+    "psp_adjustment": ("PSP adjustment", "A correction of −2% to −5% by the PSP."),
+    "tip": ("Tip", "Ruled out: home goods, no tips in the data."),
+    "unexplained": ("Unexplained", "No rule matched; needs a manual look."),
+}
 PSP_COLORS = {"PSP_A": "#0072B2", "PSP_B": "#E69F00", "PSP_C": "#009E73",
               "PSP_D": "#CC79A7", "PSP_E": "#56B4E9"}
 PORTFOLIO_COLOR = "#0072B2"
@@ -47,3 +60,10 @@ def style(fig: go.Figure, title: str, y_title: str) -> go.Figure:
 
 
 PLOTLY_CONFIG = {"displaylogo": False}
+
+
+def cause_label(code: object) -> str:
+    """'partial_capture' -> 'Partial capture'; None -> '—'."""
+    if not isinstance(code, str):
+        return "—"
+    return CAUSES.get(code, (code, ""))[0]

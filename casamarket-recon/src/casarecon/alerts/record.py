@@ -15,9 +15,8 @@ FIELDS = ("period", "rule_id", "segment", "key", "psp", "country", "severity", "
 
 @dataclass(frozen=True)
 class RuleInput:
-    """Everything the rules read. `frame` = core alert_frame; `pending` = core.pending()."""
+    """Everything the rules read. `frame` = core alert_frame (psp x country x tier x week)."""
     frame: pd.DataFrame
-    pending: pd.DataFrame
     min_n: int
     money: dict = field(default_factory=dict)  # thresholds.money_leak (warn_pct, crit_pct, weekly_usd)
 

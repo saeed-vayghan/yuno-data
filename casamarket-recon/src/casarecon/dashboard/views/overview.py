@@ -54,10 +54,10 @@ def worst_week_card() -> None:
         st.markdown(cards.worst_detail(top))
         st.caption(cards.next_line(ranked))
         st.caption("All PSPs and countries (same as `recon worst-week`); sidebar filters not applied.")
-        if st.button(cards.link_label(top, "Outliers"), key="ww_open"):
+        if st.button(cards.link_label(top, "Drill-down"), key="ww_open"):
             filters.set_handoff(psp=[top["psp"]], date=(data.to_date(top["week_start"]),
                                                         data.to_date(top["week_end"])))
-            st.switch_page(layout.pages()["outliers"])
+            st.switch_page(layout.pages()["drill_down"])
         with st.expander("All PSP-weeks this month"):
             st.dataframe(ranked, hide_index=True, column_config={
                 "rate": st.column_config.NumberColumn("Flag rate", format="percent"),

@@ -32,10 +32,11 @@ def _fit(df: pd.DataFrame) -> pd.DataFrame:
             res = smf.glm(FORMULA, data=df, family=sm.families.Binomial()).fit()
         except Exception as e:  # separation, singular design, bad formula levels
             raise ValueError(str(e)) from e
-    ci = np.exp(res.conf_int())
-    return pd.DataFrame({"term": res.params.index, "odds_ratio": np.exp(res.params.values),
-                         "or_ci_low": ci[0].values, "or_ci_high": ci[1].values,
-                         "p": res.pvalues.values})
+    with np.errstate(over="ignore"):  # huge coefficients on tiny cells -> inf odds ratio, not an error
+        ci = np.exp(res.conf_int())
+        odds = np.exp(res.params.values)
+    return pd.DataFrame({"term": res.params.index, "odds_ratio": odds, "or_ci_low": ci[0].values,
+                         "or_ci_high": ci[1].values, "p": res.pvalues.values})
 
 
 def small_cells(df: pd.DataFrame, min_cell: int) -> list[str]:

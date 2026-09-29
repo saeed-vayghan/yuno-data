@@ -4,7 +4,6 @@ The only writer of the DuckDB file. A failed model or dbt test raises DataQualit
 and keeps the last good DB untouched.
 """
 
-import json
 import os
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -15,6 +14,7 @@ from casarecon.core import log, paths
 from casarecon.core.config import dbt_vars
 from casarecon.core.deps import get_dbt_runner, get_store_at
 from casarecon.core.errors import CasaReconError, DataQualityError, InputMissing
+from casarecon.pipeline import manifest
 from casarecon.ports import DbtRunner, Store
 
 RAW_FILES = ("transactions.csv", "fx_rates_daily.csv")
@@ -44,13 +44,10 @@ def row_counts(store: Store) -> dict[str, int]:
 
 
 def write_manifest(counts: dict[str, int]) -> Path:
-    """reports/run_manifest.json (the only file with a wall-clock timestamp; never hashed)."""
-    out = paths.reports_dir() / "run_manifest.json"
-    out.parent.mkdir(parents=True, exist_ok=True)
+    """Fresh reports/run_manifest.json with the build section (the only wall-clock timestamp)."""
     info = {"built_at": datetime.now(UTC).isoformat(timespec="seconds"), "row_counts": counts,
             "versions": {p: version(p) for p in ("dbt-core", "dbt-duckdb", "duckdb")}}
-    out.write_text(json.dumps(info, indent=2) + "\n")
-    return out
+    return manifest.update("build", info, reset=True)
 
 
 def main(*, runner: DbtRunner | None = None,

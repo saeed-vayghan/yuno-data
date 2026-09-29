@@ -50,10 +50,12 @@ def headline(r: pd.Series) -> str:
 
 
 def candidates(tests: pd.DataFrame) -> pd.DataFrame:
-    """Keyed rows that are worse than their peers (rate > peer rate; peers must exist)."""
+    """Keyed rows that are worse than their peers (rate > peer rate; peers must exist) and cost
+    money (excess $ > 0; lag findings are about delay, so they are kept regardless)."""
     rate = pd.to_numeric(tests["rate"], errors="coerce")
     peer = pd.to_numeric(tests["peer_rate"], errors="coerce").fillna(math.inf)
-    return tests[tests["key"].notna() & (rate > peer)]
+    costly = (pd.to_numeric(tests["excess_usd"], errors="coerce") > 0) | (tests["kind"] == "lag")
+    return tests[tests["key"].notna() & (rate > peer) & costly]
 
 
 def _segment(r: pd.Series) -> str:

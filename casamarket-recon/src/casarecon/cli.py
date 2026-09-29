@@ -29,7 +29,7 @@ def run_step(target: str, **kwargs: Any) -> Any:
     try:
         return _entry(target)(**kwargs)
     except NotImplementedError as e:
-        typer.echo(f"not built yet ({e})", err=True)
+        typer.echo(f"step not built yet: {target} ({e}); stopping here", err=True)
     except DataQualityError as e:
         logger.error("step failed: %s", e)
         raise typer.Exit(EXIT_DQ)
@@ -121,14 +121,13 @@ def dashboard(port: int = 8501, host: str = "localhost") -> None:
     run_step("casarecon.dashboard.launch:main", port=port, host=host)
 
 
-# M1 walking skeleton: generate -> build. M2 appends validate, analyze, report; M3 alerts
-# (target order: generate -> build -> validate -> analyze -> alerts -> report).
-STEPS = ("generate", "build")
+# A step that is not built yet (NotImplementedError) stops the run with exit 1.
+STEPS = ("generate", "build", "validate", "analyze", "alerts", "report")
 
 
 @app.command("all")
 def all_(rows: ROWS = None, seed: SEED = None) -> None:
-    """Run the pipeline steps in order (M1: generate -> build); stop at the first failure."""
+    """generate -> build -> validate -> analyze -> alerts -> report; stop at the first failure."""
     logger = log.get("cli")
     for name in STEPS:
         start = time.perf_counter()

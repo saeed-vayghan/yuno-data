@@ -3,7 +3,7 @@
 import pandas as pd
 import streamlit as st
 
-from casarecon.dashboard import data, filters, layout, states, tables, widgets
+from casarecon.dashboard import data, filters, layout, states, tables, theme, widgets
 
 USES = {"date", "country", "psp", "tier", "xb", "cause"}
 LIMIT = 1000
@@ -30,17 +30,36 @@ def file_name(min_usd: float) -> str:
     return f"casamarket_outliers_min{min_usd:g}usd_{tag}.csv"
 
 
+def similar(txn_id: str) -> None:
+    sim = data.similar_count(txn_id)
+    if not sim.get("n"):
+        return
+    seg = [sim["psp"], sim["country"], theme.cause_label(sim["likely_cause"])]
+    st.markdown(f"**Similar rows:** {sim['n']:,} in {' · '.join(map(str, seg))}")
+    if st.button("See similar rows in Drill-down →", key="out_similar"):
+        handoff = {"psp": [sim["psp"]], "country": [sim["country"]]}
+        if sim["likely_cause"]:
+            handoff["cause"] = [sim["likely_cause"]]
+        filters.set_handoff(**handoff)
+        st.switch_page(layout.pages()["drill_down"])
+
+
 def detail(rows: pd.DataFrame, selected: list[int]) -> None:
     if not selected:
         st.caption("Select a row to see why it was flagged.")
         return
     row = rows.iloc[selected[0]]  # same frame as displayed: no re-query between display and lookup
+    txn_id = row["transaction_id"]
     with st.container(border=True):
-        st.markdown(f"**Selected:** `{row['transaction_id']}`")
-        for line in tables.detail_lines(row):
+        st.markdown(f"**Selected:** `{txn_id}` · {row['psp']} · {row['country']}")
+        try:
+            d = data.transaction_detail(txn_id) or row.to_dict()
+        except NotImplementedError:
+            d = row.to_dict()  # rich FX detail not built yet: show what the row has
+        for line in tables.detail_lines(d):
             st.markdown(line)
-        st.code(row["transaction_id"], language=None)
-        st.caption("Full FX detail and 'similar rows' arrive with the Drill-down page (M2).")
+        states.section("Similar rows", lambda: similar(txn_id))
+        st.code(txn_id, language=None)
 
 
 def render() -> None:
@@ -58,8 +77,8 @@ def render() -> None:
         st.caption(note)
     st.download_button("Download CSV", data=data.transactions_csv(f, min_usd), mime="text/csv",
                        file_name=file_name(min_usd), key="out_csv")
-    view = tables.outlier_view(rows)
-    event = st.dataframe(view, hide_index=True, column_config=tables.outlier_columns(),
+    view = tables.txn_view(rows)
+    event = st.dataframe(view, hide_index=True, column_config=tables.txn_columns(),
                          on_select="rerun", selection_mode="single-row", key="out_tbl")
     detail(rows.reset_index(drop=True), list(event.selection.rows) if event else [])
 

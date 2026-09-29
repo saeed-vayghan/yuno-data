@@ -9,3 +9,4 @@ data/.dbt/
 dbt/target/
 dbt/logs/
 .env
+data/.hash*

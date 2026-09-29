@@ -46,10 +46,11 @@ def other_tests(fct: pd.DataFrame, high_risk: float) -> pd.DataFrame:
     multi = fct["item_count"] >= 2
     risky = fct["risk_score"] >= high_risk
     rows = [
-        two_group(fct[multi], fct[~multi], segment_type="item_count", segment_value="2+",
+        two_group(fct[multi], fct[~multi], segment_type="item_count", segment_value="item_count >= 2",
                   key="partial_capture", kind="partial_capture", likely_cause="partial_capture",
                   metric="flag rate"),
-        two_group(fct[risky], fct[~risky], segment_type="risk_score", segment_value="high",
+        two_group(fct[risky], fct[~risky], segment_type="risk_score",
+                  segment_value=f"risk_score >= {high_risk:g}",
                   key="fraud_hold", kind="fraud_hold", likely_cause="fraud_hold", metric="flag rate"),
     ]
     return pd.concat([pd.DataFrame(rows), fee_drift(fct)], ignore_index=True)

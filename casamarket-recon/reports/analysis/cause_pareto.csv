@@ -1,0 +1,10 @@
+likely_cause,n,n_flagged,gross_under_usd,gross_over_usd,net_usd,share_of_loss
+partial_capture,3909,3909,171110.5,0.0,171110.5,0.729405
+psp_adjustment,12260,12260,46190.05,0.0,46190.05,0.196898
+fraud_hold,884,884,15128.3,0.0,15128.3,0.064488
+psp_fee,941,212,1450.15,0.0,1450.15,0.006182
+psp_rounding,2900,150,418.72,0.0,418.72,0.001785
+tax_recalc,554,0,291.45,319.44,-27.99,0.001242
+fx_timing,19527,0,0.0,0.0,0.0,0.0
+tip,0,0,0.0,0.0,0.0,0.0
+unexplained,0,0,0.0,0.0,0.0,0.0

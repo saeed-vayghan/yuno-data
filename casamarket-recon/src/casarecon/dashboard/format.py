@@ -72,8 +72,8 @@ def count(n: int) -> str:
 
 
 def pct_signed(x: float) -> str:
-    """-5.46 -> '−5.5%' (x already in percent, like residual_pct)."""
-    return _signed(f"{abs(x):.1f}%", x)
+    """-5.46 -> '−5.5%' (x already in percent, like residual_pct); tiny values -> '0.0%'."""
+    return "0.0%" if round(x, 1) == 0 else _signed(f"{abs(x):.1f}%", x)
 
 
 def rate_range(p: float, lo: float, hi: float) -> str:

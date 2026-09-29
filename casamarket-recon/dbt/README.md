@@ -8,7 +8,7 @@ dbt-duckdb project: seeds -> staging -> intermediate -> marts. Run it via `uv ru
 | sources (`raw`) | `transactions.csv`, `fx_rates_daily.csv` from `$CASARECON_RAW_DIR` (types per `contracts/transactions.yaml`) |
 | staging | `stg_transactions` (contract enforced), `stg_fx_rates` |
 | intermediate | `int_transactions_usd`: every join (exponent, VAT, fee, auth/settle FX) + calendar/tier/lag fields |
-| marts | `fct_transaction_discrepancy` (1 row per txn), `mart_psp_weekly` (PSP x country x ISO week) |
+| marts | `fct_transaction_discrepancy` (1 row per txn), `mart_psp_weekly` (PSP x country x ISO week), `mart_segment_rates` (10 segment types; booleans 'true'/'false', pairs 'PSP_B\|AR'), `mart_cause_summary` (cause x PSP x country x direction, non-exact rows), `mart_outliers` (`large` rows) |
 
 - Money: `expected = round(auth * fx_settle / fx_auth)` cross-border, else `auth`; `residual = settled - expected`;
   `residual_usd` at the auth-day rate, 2 dp; `residual_pct` in percent.

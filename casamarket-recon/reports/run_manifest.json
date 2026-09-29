@@ -1,18 +1,213 @@
 {
-  "built_at": "2026-09-29T15:23:25+00:00",
-  "row_counts": {
-    "intermediate.int_transactions_usd": 135000,
-    "marts.fct_transaction_discrepancy": 135000,
-    "marts.mart_psp_weekly": 280,
-    "ref.currency_exponents": 5,
-    "ref.psp_fees": 5,
-    "ref.vat_rates": 4,
-    "staging.stg_fx_rates": 424,
-    "staging.stg_transactions": 135000
+  "build": {
+    "built_at": "2026-09-29T15:27:52+00:00",
+    "row_counts": {
+      "intermediate.int_transactions_usd": 135000,
+      "marts.fct_transaction_discrepancy": 135000,
+      "marts.mart_cause_summary": 150,
+      "marts.mart_outliers": 4976,
+      "marts.mart_psp_weekly": 280,
+      "marts.mart_segment_rates": 64,
+      "ref.currency_exponents": 5,
+      "ref.psp_fees": 5,
+      "ref.vat_rates": 4,
+      "staging.stg_fx_rates": 424,
+      "staging.stg_transactions": 135000
+    },
+    "versions": {
+      "dbt-core": "1.12.5",
+      "dbt-duckdb": "1.11.0",
+      "duckdb": "1.4.5"
+    }
   },
-  "versions": {
-    "dbt-core": "1.12.5",
-    "dbt-duckdb": "1.11.0",
-    "duckdb": "1.4.5"
+  "validate": {
+    "status": "PASS",
+    "mode": "full",
+    "checks": [
+      {
+        "name": "rows",
+        "target": ">= 500",
+        "realized": 135000.0,
+        "low": 500,
+        "high": Infinity,
+        "status": "PASS"
+      },
+      {
+        "name": "months",
+        "target": "3-4",
+        "realized": 3.0,
+        "low": 3,
+        "high": 4,
+        "status": "PASS"
+      },
+      {
+        "name": "countries",
+        "target": "MX CO AR CL",
+        "realized": 1.0,
+        "low": 1,
+        "high": 1,
+        "status": "PASS"
+      },
+      {
+        "name": "currencies",
+        "target": "MXN COP ARS CLP",
+        "realized": 1.0,
+        "low": 1,
+        "high": 1,
+        "status": "PASS"
+      },
+      {
+        "name": "psps",
+        "target": "3-5",
+        "realized": 5.0,
+        "low": 3,
+        "high": 5,
+        "status": "PASS"
+      },
+      {
+        "name": "failed rows",
+        "target": "> 0",
+        "realized": 5448.0,
+        "low": 1,
+        "high": Infinity,
+        "status": "PASS"
+      },
+      {
+        "name": "pending rows",
+        "target": "> 0",
+        "realized": 5163.0,
+        "low": 1,
+        "high": Infinity,
+        "status": "PASS"
+      },
+      {
+        "name": "settled share",
+        "target": "> 50%",
+        "realized": 0.9214,
+        "low": 0.5,
+        "high": 1,
+        "status": "PASS"
+      },
+      {
+        "name": "median settle lag (days)",
+        "target": "1-7",
+        "realized": 3.1649,
+        "low": 1,
+        "high": 7,
+        "status": "PASS"
+      },
+      {
+        "name": "lag outliers (> 7 d)",
+        "target": "> 0",
+        "realized": 2934.0,
+        "low": 1,
+        "high": Infinity,
+        "status": "PASS"
+      },
+      {
+        "name": "null metadata rows",
+        "target": "0",
+        "realized": 0.0,
+        "low": 0,
+        "high": 0,
+        "status": "PASS"
+      },
+      {
+        "name": "match exactly (exact+rounding) / settled",
+        "target": "60%-70%",
+        "realized": 0.6817,
+        "low": 0.596,
+        "high": 0.704,
+        "status": "PASS"
+      },
+      {
+        "name": "small 0.1-2% (fx_tolerance) / settled",
+        "target": "15%-20%",
+        "realized": 0.1782,
+        "low": 0.1467,
+        "high": 0.2033,
+        "status": "PASS"
+      },
+      {
+        "name": "meaningful > 2% (meaningful+large) / settled",
+        "target": "10%-18%",
+        "realized": 0.14,
+        "low": 0.097,
+        "high": 0.183,
+        "status": "PASS"
+      },
+      {
+        "name": "large > 5% or >= $20 / settled",
+        "target": "3%-5%",
+        "realized": 0.04,
+        "low": 0.0283,
+        "high": 0.0517,
+        "status": "PASS"
+      },
+      {
+        "name": "match exactly (exact+rounding) / rows",
+        "target": "60%-70%",
+        "realized": 0.6282,
+        "low": 0.5961,
+        "high": 0.7039,
+        "status": "PASS"
+      },
+      {
+        "name": "small 0.1-2% (fx_tolerance) / rows",
+        "target": "15%-20%",
+        "realized": 0.1642,
+        "low": 0.147,
+        "high": 0.203,
+        "status": "PASS"
+      },
+      {
+        "name": "meaningful > 2% (meaningful+large) / rows",
+        "target": "10%-18%",
+        "realized": 0.129,
+        "low": 0.0973,
+        "high": 0.1827,
+        "status": "PASS"
+      },
+      {
+        "name": "large > 5% or >= $20 / rows",
+        "target": "3%-5%",
+        "realized": 0.0369,
+        "low": 0.0285,
+        "high": 0.0515,
+        "status": "PASS"
+      },
+      {
+        "name": "P1 PSP_B x AR flag-rate gap (pts)",
+        "target": ">= 2.5",
+        "realized": 3.1052,
+        "low": 2.5,
+        "high": Infinity,
+        "status": "PASS"
+      },
+      {
+        "name": "P2 CO > $300 median lag gap (days)",
+        "target": ">= 2",
+        "realized": 3.3131,
+        "low": 2,
+        "high": Infinity,
+        "status": "PASS"
+      },
+      {
+        "name": "P3 weekend / weekday flag rate",
+        "target": ">= 1.2",
+        "realized": 1.2584,
+        "low": 1.2,
+        "high": Infinity,
+        "status": "PASS"
+      },
+      {
+        "name": "P4 PSP_D x-border CLP/COP rounding share",
+        "target": ">= 90%",
+        "realized": 1.0,
+        "low": 0.9,
+        "high": 1,
+        "status": "PASS"
+      }
+    ]
   }
 }

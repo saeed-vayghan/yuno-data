@@ -2,7 +2,8 @@
 
 from datetime import date
 
-from casarecon.dashboard import cards, charts, filters, tables, theme
+from casarecon.dashboard import cards, charts, charts_causes, charts_segments, filters, tables
+from casarecon.dashboard import theme
 from casarecon.dashboard import format as fmt
 from casarecon.dashboard.data import Filters
 from tests.dashboard import fakes
@@ -42,6 +43,23 @@ def test_charts_cards_filters_tables():
     assert filters.clip((date(2026, 3, 30), date(2026, 4, 5)), (date(2026, 4, 1), None)) == (
         date(2026, 4, 1), date(2026, 4, 5))
     # table view: masked customer even if a raw ID slips through; local amounts stay text, USD numeric
-    view = tables.outlier_view(fakes.transactions().assign(customer=["cus_8f2a91c07f3a", "x", None]))
+    view = tables.txn_view(fakes.transactions().assign(customer=["cus_8f2a91c07f3a", "x", None]))
     assert view["customer"][0] == "cus_••••7f3a" and view["raw_diff"][0] == "CLP −58,000"
     assert view["residual_usd"].dtype.kind == "f"
+
+
+def test_m2_builders_rate_bars_heatmap_causes_findings():
+    seg = fakes.segment_rates("psp")
+    bars = charts_segments.rate_bars(seg, "PSP").data[0]
+    assert list(bars.y) == ["PSP_E", "PSP_B", "PSP_A"]  # low sample at the bottom, best on top
+    assert bars.error_x.array[0] == 0 and bars.text[0] == "50.0% · low sample (n<30)"
+    assert bars.text[-1] == "21.3% [19.8–22.9] · n 3,020"
+    heat = charts_causes.heatmap(fakes.segment_rates("psp_country")).data[0]
+    assert "n<30" in heat.text.ravel().tolist() and "21.3" in heat.text.ravel().tolist()
+    cs = fakes.cause_summary()
+    assert charts_causes.cause_rows(cs)[1] == ["tip"]  # ruled out: caption, not a zero bar
+    assert sum(charts_causes.cause_bars(cs).data[0].x) == cs["net_usd"].sum()
+    assert cards.finding_line(fakes.FINDINGS["items"][0]) == (
+        "**F1** PSP_B in AR flags more than peers · n 3,020 · rate 17.9% [16.6–19.3] · "
+        "peer 12.1% · lift 1.48× · q < 0.001 · ~$18.4k/qtr")
+    assert filters.date_text(date(2026, 6, 8), date(2026, 6, 14)) == "W24 (Jun 8–14)"

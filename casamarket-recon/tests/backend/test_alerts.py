@@ -16,19 +16,18 @@ from tests.backend.test_ui_q_minidb import minidb  # noqa: F401  (fixture)
 W, PREV = "2026-W25", "2026-W24"
 CFG = {r["id"]: r for r in load_config().alerts.rules}
 COLS = ["psp", "country", "amount_tier", "auth_week", "n", "n_flagged", "n_large", "large_usd",
-        "gross_under_usd", "gross_over_usd", "settled_usd", "n_open", "n_late"]
-PENDING_COLS = ["psp", "country", "n", "amount_usd", "oldest_age_days"]
+        "gross_under_usd", "gross_over_usd", "settled_usd", "n_open", "n_open_old", "n_late"]
 
 
 def row(psp="PSP_A", country="MX", week=W, n=200, flagged=20, tier="50-200", **kw) -> dict:
     return {"psp": psp, "country": country, "amount_tier": tier, "auth_week": week, "n": n,
             "n_flagged": flagged, "n_large": 0, "large_usd": 0.0, "gross_under_usd": 0.0,
-            "gross_over_usd": 0.0, "settled_usd": 100.0 * n, "n_open": 0, "n_late": 0, **kw}
+            "gross_over_usd": 0.0, "settled_usd": 100.0 * n, "n_open": 0, "n_open_old": 0, "n_late": 0,
+            **kw}
 
 
-def data(rows, pending=()) -> RuleInput:
-    return RuleInput(frame=pd.DataFrame(rows, columns=COLS),
-                     pending=pd.DataFrame(list(pending), columns=PENDING_COLS), min_n=50,
+def data(rows) -> RuleInput:
+    return RuleInput(frame=pd.DataFrame(rows, columns=COLS), min_n=50,
                      money={"warn_pct": 1.5, "crit_pct": 2.5, "weekly_usd": 9800})
 
 
@@ -72,11 +71,12 @@ def test_money_rules_leak_large_pending_and_small_n():
     assert "top: PSP_D|CL $400.00, PSP_A|MX $90.00, PSP_B|AR $25.00." in a["message"]
     assert large_rows(data([row()]), CFG["large_rows"], W) == []
 
-    pend = [("PSP_C", "CO", 60, 30.0, 20.0), ("PSP_A", "MX", 60, 20.0, 10.0),
-            ("PSP_E", "CL", 60, 9.0, 3.0), ("PSP_B", "AR", 2, 9.0, 30.0)]
-    out = pending_aging(data([row()], pend), CFG["pending_aging"], W)
+    # share of pending rows older than 7 d: 30% -> SEV2, 12% -> SEV3, 5% -> silent, n < 50 -> INFO
+    pend = [row("PSP_C", "CO", n_open=60, n_open_old=18), row("PSP_A", "MX", n_open=50, n_open_old=6),
+            row("PSP_E", "CL", n_open=60, n_open_old=3), row("PSP_B", "AR", n_open=10, n_open_old=9)]
+    out = pending_aging(data(pend), CFG["pending_aging"], W)
     assert [(x["segment"], x["severity"], x["threshold"]) for x in out] == [
-        ("PSP_C|CO", "SEV2", 14.0), ("PSP_A|MX", "SEV3", 7.0), ("PSP_B|AR", "INFO", 50.0)]
+        ("PSP_A|MX", "SEV3", 0.1), ("PSP_B|AR", "INFO", 50.0), ("PSP_C|CO", "SEV2", 0.25)]
 
     small = data([row(n=10, flagged=9, gross_under_usd=500.0, n_large=5, large_usd=500.0)])
     for rule in (money_leak, large_rows):  # n < 50 -> INSUFFICIENT_DATA, never an alert

@@ -1,0 +1,52 @@
+[
+  {
+    "action": "Reconcile partial captures and holds to order changes",
+    "evidence": "F1, F3",
+    "implementation": "Join order events; auto-close explained rows",
+    "method": "excess loss × 30%",
+    "owner": "Ops",
+    "rank": 1,
+    "reduction_pct": 30,
+    "usd_quarter": 17662.56
+  },
+  {
+    "action": "Dispute the new PSP_C per-transaction fee",
+    "evidence": "F7, F8",
+    "implementation": "Compare with contract (`psp_fees` = 0); claim back since the drift started",
+    "method": "excess loss × 70%",
+    "owner": "Finance",
+    "rank": 2,
+    "reduction_pct": 70,
+    "usd_quarter": 1015.11
+  },
+  {
+    "action": "Escalate PSP_B AR variance; renegotiate settlement terms",
+    "evidence": "F5",
+    "implementation": "Weekly variance report to PSP_B; SLA clause with credit on excess",
+    "method": "excess loss × 50%",
+    "owner": "Payments ops",
+    "rank": 3,
+    "reduction_pct": 50,
+    "usd_quarter": 943.27
+  },
+  {
+    "action": "Escalate PSP_C MX variance; renegotiate settlement terms",
+    "evidence": "F6",
+    "implementation": "Weekly variance report to PSP_C; SLA clause with credit on excess",
+    "method": "excess loss × 50%",
+    "owner": "Payments ops",
+    "rank": 4,
+    "reduction_pct": 50,
+    "usd_quarter": 728.54
+  },
+  {
+    "action": "Settlement SLA for CO orders over $300",
+    "evidence": "F9",
+    "implementation": "Track lag p90; escalate > 7 days",
+    "method": "excess loss × 50%",
+    "owner": "PSP ops",
+    "rank": 5,
+    "reduction_pct": 50,
+    "usd_quarter": 629.04
+  }
+]

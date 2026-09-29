@@ -26,7 +26,7 @@ See `OWNERSHIP.md` for every path and its owner. Each major folder has a short R
 
 ## Milestones
 - **M1 walking skeleton:** generate -> build -> worst-week/query -> dashboard shell, end to end on `make smoke`.
-  `recon all` runs generate -> build in M1; M2 appends validate -> analyze -> report, M3 alerts.
+  `recon all` = generate -> build -> validate -> analyze -> alerts -> report; a step not built yet stops it with exit 1.
 - **M2:** validate gate, analysis, reports, more dashboard pages.
 - **M3:** alerts + Alerts page, Docker/CI polish, README assumptions.
 

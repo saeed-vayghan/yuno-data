@@ -1,11 +1,12 @@
 """Drill-down + alerts rows #16 category_mix, #20 filter_options, #21 pending (BACKEND)."""
 
+from datetime import date
+
 import pandas as pd
 
 from casarecon.core.filters import CAUSES, COUNTRIES, PSPS, TIERS, WEEKDAYS, Filters
-from casarecon.core.queries.ui_q_base import (
-    AS_OF, CATEGORY_ORDER, FCT, SETTLED, full_months, store_of, where,
-)
+from casarecon.core.queries.pipeline_q import status
+from casarecon.core.queries.ui_q_base import AS_OF, CATEGORY_ORDER, FCT, SETTLED, store_of, where
 from casarecon.ports import Store
 
 PENDING_COLS = ["psp", "country", "n", "amount_usd", "oldest_age_days"]
@@ -33,7 +34,8 @@ def filter_options(*, store: Store | None = None) -> dict[str, list[str]]:
     """Values present in the data, in canonical order; months = full calendar months only."""
     lists = ", ".join(f"list(distinct {col}) filter (where {col} is not null) as {key}"
                       for key, (col, _) in _OPTIONS.items())
-    row = store_of(store).query(
+    s = store_of(store)
+    row = s.query(
         f"select {lists}, list(distinct auth_week) as weeks, "
         f"min(auth_ts)::date as min_date, max(auth_ts)::date as max_date from {FCT}").iloc[0]
     if pd.isna(row["min_date"]):
@@ -41,7 +43,11 @@ def filter_options(*, store: Store | None = None) -> dict[str, list[str]]:
                 "max_date": None}
     lo, hi = pd.Timestamp(row["min_date"]).date(), pd.Timestamp(row["max_date"]).date()
     opts = {k: [v for v in order if v in set(row[k])] for k, (_, order) in _OPTIONS.items()}
-    return {**opts, "weeks": sorted(row["weeks"]), "months": full_months(lo, hi),
+    st = status(store=s)  # core.weeks rule: a month is full if it starts >= min date, <= last_full
+    last_full = st["last_full_month"]
+    months = [m for m in st["months"]
+              if last_full and m <= last_full and date.fromisoformat(f"{m}-01") >= lo]
+    return {**opts, "weeks": sorted(row["weeks"]), "months": months,
             "min_date": lo.isoformat(), "max_date": hi.isoformat()}
 
 

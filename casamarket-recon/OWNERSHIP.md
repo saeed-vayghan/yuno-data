@@ -15,14 +15,14 @@ Owners: **INFRA** = Architect + Engineer (infra/pipeline) · **BACKEND** = Engin
 | `src/casarecon/cli.py`, `src/casarecon/cli_query.py` | INFRA |
 | `src/casarecon/ports.py` | INFRA |
 | `src/casarecon/core/*.py` (config, paths, errors, filters, money, privacy, deps, log, weeks, `__init__`) | INFRA |
-| `src/casarecon/core/queries/pipeline_q.py` | INFRA |
+| `src/casarecon/core/queries/pipeline_q.py`, `src/casarecon/core/queries/pipeline_q2.py` | INFRA |
 | `src/casarecon/generate/**`, `src/casarecon/pipeline/**`, `src/casarecon/validate/**` | INFRA |
 | `src/casarecon/adapters/duckdb_store.py`, `src/casarecon/adapters/dbt_runner.py` | INFRA |
 | `data/sample/**` | INFRA |
 | `tests/conftest.py`, `tests/infra/**` | INFRA |
 | `src/casarecon/analysis/**`, `src/casarecon/report/**`, `src/casarecon/alerts/**` | BACKEND |
 | `src/casarecon/adapters/files.py`, `src/casarecon/adapters/slack.py` | BACKEND |
-| `src/casarecon/core/queries/ui_q.py`, `src/casarecon/core/queries/reports_q.py` | BACKEND |
+| `src/casarecon/core/queries/ui_q.py`, `src/casarecon/core/queries/ui_q_*.py`, `src/casarecon/core/queries/reports_q.py` | BACKEND |
 | `reports/**` (generated output) | BACKEND |
 | `tests/backend/**` | BACKEND |
 | `src/casarecon/dashboard/**` | FRONTEND |

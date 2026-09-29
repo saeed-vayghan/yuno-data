@@ -2,11 +2,12 @@
 
 import pandas as pd
 
+from casarecon.core import weeks
 from casarecon.core.errors import BadFilter
 from casarecon.core.filters import WEEK_RE, Filters
+from casarecon.core.queries.pipeline_q import status
 from casarecon.core.queries.ui_q_base import (
-    AGG, FCT, SETTLED, as_of, is_closed, last_closed_week, min_sample, prev_week, store_of, where,
-    with_rates,
+    AGG, FCT, SETTLED, min_sample, prev_week, store_of, where, with_rates,
 )
 from casarecon.ports import Store
 
@@ -25,10 +26,9 @@ def _kpi(row: pd.Series) -> dict:
             "gross_under_usd": float(row["gross_under_usd"])}
 
 
-def _resolve_week(week: str, store: Store) -> str | None:
+def _resolve_week(week: str, store: Store) -> str:
     if week == "last_closed":
-        a = as_of(store)
-        return None if a is None else last_closed_week(a)
+        return status(store=store)["last_closed_week"]
     if not WEEK_RE.match(week):
         raise BadFilter(f"bad week: {week} (expected 'last_closed', 'all' or YYYY-Www)")
     return week
@@ -42,7 +42,7 @@ def kpis(filters: Filters | None = None, week: str = "last_closed", *,
         df = s.query(f"select {AGG} from {FCT} where {SETTLED}{cond}", params)
         return _kpi(with_rates(df).iloc[0])
     wk = _resolve_week(week, s)
-    prev = prev_week(wk) if wk else None
+    prev = prev_week(wk)
     df = with_rates(s.query(
         f"select auth_week, {AGG} from {FCT} where {SETTLED}{cond} and auth_week in (?, ?) "
         "group by auth_week", [*params, wk, prev])).set_index("auth_week")
@@ -64,18 +64,15 @@ def weekly_trend(filters: Filters | None = None, by: str = "portfolio", *,
         f"select auth_week, week_start, {series} as series, {AGG} from {FCT} "
         f"where {SETTLED}{cond} group by all order by week_start, series", params))
     df["week_start"] = pd.to_datetime(df["week_start"]).dt.date
-    a = as_of(s)
-    df["is_closed"] = [a is not None and is_closed(ws, a) for ws in df["week_start"]]
+    closed_end = status(store=s)["last_closed_end"]  # core.weeks rule
+    df["is_closed"] = [weeks.week_bounds(ws)[1] <= closed_end for ws in df["week_start"]]
     df["low_sample"] = df["n"] < min_sample()
     return df[TREND_COLS].reset_index(drop=True)
 
 
 def week_over_week(filters: Filters | None = None, *, store: Store | None = None) -> pd.DataFrame:
     s = store_of(store)
-    a = as_of(s)
-    if a is None:
-        return pd.DataFrame(columns=WOW_COLS)
-    last = last_closed_week(a)
+    last = status(store=s)["last_closed_week"]
     prev = prev_week(last)
     cond, params = where(filters)
     df = with_rates(s.query(

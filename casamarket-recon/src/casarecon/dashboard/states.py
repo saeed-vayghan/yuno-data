@@ -6,12 +6,14 @@ missing core function degrades only that block ("not available yet"), not the wh
 
 import logging
 from collections.abc import Callable
+from typing import TypeVar
 
 import streamlit as st
 
 from casarecon.dashboard import data
 
 log = logging.getLogger("casarecon.dashboard")
+T = TypeVar("T")
 
 NO_DATA = "No data yet. Run `make all` first, then reload this page."
 BUSY = "The data is being rebuilt. Retry in a minute."
@@ -45,10 +47,11 @@ def empty(text: str = EMPTY) -> None:
     st.info(text, icon="ℹ️")
 
 
-def section(label: str, render: Callable[[], None]) -> None:
-    """Wrap one block; other blocks keep working when this one is not built yet."""
+def section(label: str, render: Callable[[], T]) -> T | None:
+    """Wrap one block; other blocks keep working when this one is not built yet.
+    Returns the block's result, or None when it failed."""
     try:
-        render()
+        return render()
     except data.DbMissing:
         no_data()
     except data.DbBusy:

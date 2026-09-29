@@ -44,3 +44,33 @@ def open_alerts(alerts: pd.DataFrame | None) -> tuple[str, str]:
     live = alerts[alerts["status"].isin(["NEW", "ONGOING"]) & (alerts["severity"] != "INFO")]
     sev2 = int((live["severity"] == "SEV2").sum())
     return (f"{len(live)} ({sev2} SEV2)" if sev2 else str(len(live))), "NEW or ONGOING"
+
+
+def q_text(q: float | None) -> str:
+    """0.0002 -> 'q < 0.001'; 0.0213 -> 'q = 0.021'."""
+    if q is None:
+        return "q —"
+    return "q < 0.001" if q < 0.001 else f"q = {q:.3f}"
+
+
+def finding_line(item: dict) -> str:
+    """'**F1** PSP_B in AR … · n 3,020 · rate 17.9% [16.6–19.3] · peer 12.1% · lift 1.48× ·
+    q < 0.001 · ~$18.4k/qtr' (every number from findings.json)."""
+    lo, hi = (item.get("ci") or [None, None])[:2]
+    rate = (fmt.rate_range(item["rate"], lo, hi) if lo is not None and hi is not None
+            else fmt.rate(item["rate"]))
+    parts = [f"n {fmt.count(item['n'])}", f"rate {rate}"]
+    if item.get("peer_rate") is not None:
+        parts.append(f"peer {fmt.rate(item['peer_rate'])}")
+    if item.get("lift") is not None:
+        parts.append(f"lift {item['lift']:.2f}×")
+    parts += [q_text(item.get("q")), f"~{fmt.usd_compact(item.get('usd_quarter') or 0)}/qtr"]
+    return f"**{item['id']}** {item['headline']} · " + " · ".join(parts)
+
+
+def recommendation_line(r: dict) -> str:
+    """'**R1 Escalate …** · Evidence F1 · ~$18k/qtr · Owner: PSP ops'."""
+    ev = r.get("evidence")
+    ev = ", ".join(map(str, ev)) if isinstance(ev, list) else ev
+    return (f"**R{r['rank']} {r['action']}** · Evidence {ev} · "
+            f"~{fmt.usd_compact(r['usd_quarter'])}/qtr · Owner: {r['owner']}")

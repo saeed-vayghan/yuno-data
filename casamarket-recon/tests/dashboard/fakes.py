@@ -67,3 +67,43 @@ def outlier_summary(f=None, min_usd=50) -> dict:
 
 def not_built(*args, **kwargs):
     raise NotImplementedError("M2")
+
+
+def segment_rates(dim: str, f=None) -> pd.DataFrame:
+    values = (["PSP_A|MX", "PSP_A|AR", "PSP_B|MX", "PSP_B|AR"] if dim == "psp_country"
+              else ["PSP_A", "PSP_B", "PSP_E"])
+    n = [3020, 1500, 800, 12] if dim == "psp_country" else [3020, 1500, 12]
+    rate = [0.213, 0.12, 0.09, 0.5] if dim == "psp_country" else [0.213, 0.12, 0.5]
+    return pd.DataFrame({"segment_type": dim, "segment_value": values, "n": n, "rate": rate,
+                         "ci_low": [r - 0.015 for r in rate], "ci_high": [r + 0.016 for r in rate],
+                         "low_sample": [x < 30 for x in n]})
+
+
+def category_mix(f=None) -> pd.DataFrame:
+    return pd.DataFrame({"auth_week": ["2026-W24"] * 2 + ["2026-W25"] * 2,
+                         "category": ["exact", "large"] * 2, "n": [90, 10, 80, 20],
+                         "share": [0.9, 0.1, 0.8, 0.2]})
+
+
+def cause_summary(f=None) -> pd.DataFrame:
+    return pd.DataFrame({"likely_cause": ["partial_capture", "fraud_hold", "tip"], "n": [300, 200, 0],
+                         "n_flagged": [300, 200, 0], "gross_under_usd": [41200.0, 27900.0, 0.0],
+                         "gross_over_usd": [0.0, 0.0, 0.0], "net_usd": [41200.0, 27900.0, 0.0],
+                         "share_of_loss": [0.32, 0.22, 0.0]})
+
+
+def excess_loss(top=5) -> pd.DataFrame:
+    return pd.DataFrame({"psp": ["PSP_B"], "country": ["AR"], "n": [3020], "rate": [0.179],
+                         "peer_rate": [0.121], "lift": [1.48], "excess_usd": [18400.0],
+                         "mean_loss_usd": [40.0], "median_loss_usd": [31.0]})
+
+
+FINDINGS = {"markdown": "# Findings", "items": [
+    {"id": "F1", "headline": "PSP_B in AR flags more than peers", "n": 3020, "rate": 0.179,
+     "ci": [0.166, 0.193], "peer_rate": 0.121, "lift": 1.48, "q": 0.0001, "usd_quarter": 18400.0}]}
+RECS = [{"rank": 1, "action": "Escalate PSP_B Argentina variance", "evidence": "F1",
+         "owner": "PSP ops", "implementation": "Open a ticket.", "usd_quarter": 18000.0}]
+
+
+def similar_count(txn_id: str) -> dict:
+    return {"psp": "PSP_D", "country": "CL", "likely_cause": "psp_rounding", "n": 142}

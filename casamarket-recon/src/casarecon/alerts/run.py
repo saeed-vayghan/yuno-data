@@ -11,16 +11,16 @@ from casarecon.alerts.record import RuleInput
 from casarecon.alerts.sink import write
 from casarecon.core import deps, log, paths
 from casarecon.core.config import Config, load_config
-from casarecon.core.errors import DbMissing
-from casarecon.core.queries.ui_q import pending, week_over_week
+from casarecon.alerts.rules_money import pending_limits
+from casarecon.core.queries.pipeline_q import status
+from casarecon.core.queries.ui_q import week_over_week
 from casarecon.core.queries.ui_q_alerts import alert_frame
-from casarecon.core.queries.ui_q_base import as_of, last_closed_week, prev_week
+from casarecon.core.queries.ui_q_base import prev_week
 from casarecon.ports import Notifier, Store
 
 
-def _late_days(cfg: Config) -> float:
-    lag = [r for r in cfg.alerts.rules if r["id"] == "settle_lag"]
-    return float(lag[0]["late_days"]) if lag else cfg.thresholds.lag_outlier_days
+def _rule(cfg: Config, rule_id: str) -> dict:
+    return next((r for r in cfg.alerts.rules if r["id"] == rule_id), {})
 
 
 def main(*, store: Store | None = None, out_dir: Path | None = None,
@@ -28,13 +28,12 @@ def main(*, store: Store | None = None, out_dir: Path | None = None,
     """Evaluate the last closed week; write reports/alerts.jsonl + alerts.md; return the records."""
     cfg = cfg or load_config()
     s = store or deps.get_store()
-    stamp = as_of(s)
-    if stamp is None:
-        raise DbMissing("fct_transaction_discrepancy is empty")
-    week = last_closed_week(stamp)
+    st = status(store=s)  # the one week rule (core.weeks): as_of + last closed week
+    week, stamp = st["last_closed_week"], st["as_of"]
     prev = prev_week(week)
-    data = RuleInput(frame=alert_frame(_late_days(cfg), store=s), pending=pending(store=s),
-                     min_n=cfg.thresholds.min_sample.alerts,
+    late_days = _rule(cfg, "settle_lag").get("late_days", cfg.thresholds.lag_outlier_days)
+    frame = alert_frame(late_days, pending_limits(_rule(cfg, "pending_aging"))["age_days"], store=s)
+    data = RuleInput(frame=frame, min_n=cfg.thresholds.min_sample.alerts,
                      money=cfg.thresholds.money_leak.model_dump())
     alerts = evaluate(data, list(cfg.alerts.rules), week, prev)
     md = render(alerts, week=week, prev=prev, as_of=stamp.isoformat(sep=" "), frame=data.frame,

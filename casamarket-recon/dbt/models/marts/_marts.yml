@@ -62,3 +62,21 @@ models:
       - {name: psp_week_key, data_tests: [unique, not_null]}
       - {name: n, data_tests: [not_null]}
       - {name: low_sample, data_tests: [not_null]}
+
+  - name: mart_segment_rates
+    description: Flag rate + USD per segment (10 segment types) on settled rows.
+    columns:
+      - {name: segment_key, data_tests: [unique, not_null]}
+      - name: segment_type
+        data_tests:
+          - accepted_values: {arguments: {values: [country, currency, psp, psp_country, amount_tier, country_tier, weekday, is_weekend, lag_bucket, cross_border]}}
+
+  - name: mart_cause_summary
+    description: USD by likely cause x PSP x country x direction (non-exact settled rows).
+    columns:
+      - {name: cause_key, data_tests: [unique, not_null]}
+
+  - name: mart_outliers
+    description: Large rows (> 5% or >= $20) with the transaction columns.
+    columns:
+      - {name: transaction_id, data_tests: [unique, not_null]}
