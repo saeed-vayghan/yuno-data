@@ -11,6 +11,6 @@ causes:
   fee_min_repeats: 20          # same residual repeated >= 20 times in one PSP × currency
   high_risk_score: 0.8
   partial_tolerance_pct: 0.5   # settled within 0.5% of expected × (n-1)/n
-money_leak: {warn_pct: 1.5, crit_pct: 2.5, weekly_usd: 9800}   # tune after the first full run
+money_leak: {warn_pct: 2.5, crit_pct: 3.5, weekly_usd: 9800}   # normal weeks run 1.6-2.0% of settled USD (full run)
 min_sample: {alerts: 50, worst_week: 30}
 full_run_min_rows: 10000       # below this, validate pattern checks only warn

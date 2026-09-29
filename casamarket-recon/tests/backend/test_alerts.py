@@ -116,3 +116,17 @@ def test_run_writes_deterministic_reports_slack_off(minidb, tmp_path):
 @pytest.fixture(autouse=True)
 def _no_slack_env(monkeypatch):
     monkeypatch.delenv("SLACK_WEBHOOK_URL", raising=False)
+
+
+def test_peer_alerts_group_by_psp_and_keep_status():
+    from casarecon.alerts.evaluate import with_status
+    from casarecon.alerts.group import group_peers
+    from casarecon.alerts.record import record
+    cfg = {"id": "peer", "owner": "PSP ops", "severity": "SEV2", "min_gap_pts": 2,
+           "group_min_countries": 3}
+    rows = lambda w, cs: [record(cfg, w, f"PSP_C|{c}", psp="PSP_C", country=c, n=100,  # noqa: E731
+                                 value=0.17, threshold=0.16, message="m") for c in cs]
+    now = group_peers(rows("W2", ["AR", "CL", "MX"]), cfg, "W2")
+    assert [r["segment"] for r in now] == ["PSP_C|ALL"]
+    out = with_status(now, group_peers(rows("W1", ["CO"]), cfg, "W1"), "W2")
+    assert [(r["segment"], r["status"]) for r in out] == [("PSP_C|ALL", "ONGOING")]

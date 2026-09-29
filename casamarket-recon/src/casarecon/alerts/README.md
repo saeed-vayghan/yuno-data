@@ -7,6 +7,7 @@ when alerts fire. Slack is off unless `slack.enabled: true` **and** env `SLACK_W
 |---|---|
 | `run.py` | thin shell: core reads -> evaluate -> render -> write -> Slack (opt-in) |
 | `rules_rate.py` | `peer` (BH q + gap), `change` (p-chart vs 8 prior weeks), `settle_lag` (country x tier) |
+| `group.py` | one PSP firing `peer` in ≥ 3 countries → one PSP-wide alert (`PSP_C|ALL`) |
 | `rules_money.py` | `money_leak` (under / settled USD), `large_rows` (count, $, top 3), `pending_aging` (share of pending older than `age_days`, warn 10% / crit 25%) |
 | `evaluate.py` | runs each rule for W and W-1 -> NEW / ONGOING / RESOLVED (no state file); sorts |
 | `record.py` | record shape = `core.load_alerts()` columns; `RuleInput`; window helpers |

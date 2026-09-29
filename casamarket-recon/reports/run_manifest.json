@@ -1,6 +1,6 @@
 {
   "build": {
-    "built_at": "2026-09-29T15:37:10+00:00",
+    "built_at": "2026-09-29T15:43:19+00:00",
     "row_counts": {
       "intermediate.int_transactions_usd": 135000,
       "marts.fct_transaction_discrepancy": 135000,

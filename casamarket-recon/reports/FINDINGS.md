@@ -241,18 +241,14 @@ Flag rate if the `meaningful` cut-off moved (the $ cut-off always applies):
 
 ## Latest alerts
 
-- SEV2: 6
-- SEV3: 4
+- SEV2: 3
+- SEV3: 3
 
 - **SEV2** peer PSP_B|AR: PSP_B flags 17.4% of AR rows vs 14.9% for other PSPs (+2.4 pts, q = 0.025; 95% CI 15.8%-19.1%). (owner: PSP ops)
-- **SEV2** peer PSP_C|AR: PSP_C flags 17.8% of AR rows vs 15.0% for other PSPs (+2.8 pts, q = 0.018; 95% CI 16.0%-19.7%). (owner: PSP ops)
-- **SEV2** peer PSP_C|CL: PSP_C flags 16.5% of CL rows vs 13.7% for other PSPs (+2.8 pts, q = 0.026; 95% CI 14.6%-18.7%). (owner: PSP ops)
-- **SEV2** peer PSP_C|CO: PSP_C flags 16.9% of CO rows vs 13.7% for other PSPs (+3.3 pts, q = 0.002; 95% CI 15.4%-18.6%). (owner: PSP ops)
-- **SEV2** peer PSP_C|MX: PSP_C flags 16.1% of MX rows vs 13.8% for other PSPs (+2.3 pts, q = 0.005; 95% CI 14.8%-17.4%). (owner: PSP ops)
+- **SEV2** peer PSP_C|ALL: PSP_C flags more than other PSPs in 4 countries: AR 17.8% (+2.8 pts), CL 16.5% (+2.8 pts), CO 16.9% (+3.3 pts), MX 16.1% (+2.3 pts). Same PSP everywhere points to a PSP-side cause (fee, rounding, policy). (owner: PSP ops)
 - **SEV2** peer PSP_E|CO: Resolved: PSP_E flags 16.4% of CO rows vs 13.6% for other PSPs (+2.7 pts, q = 0.039; 95% CI 14.3%-18.8%). (owner: PSP ops)
 - **SEV3** change PSP_C|AR: PSP_C|AR flag rate 20.0% in 2026-W25 is above the control limit 18.9% (baseline 13.8%). (owner: PSP ops)
 - **SEV3** large_rows ALL: 429 large rows ($16,323.14 absolute) in 2026-W25; top: PSP_A|MX $1,825.25, PSP_D|MX $1,723.42, PSP_C|MX $1,372.68. (owner: PSP ops)
-- **SEV3** money_leak ALL: Under-settled $20,115.97 = 1.94% of settled USD in 2026-W25 (warn 1.5%, crit 2.5%). (owner: Finance)
 - **SEV3** settle_lag CO|200+: 17.5% of CO|200+ rows settle after 7 days (limit 6.0%). (owner: PSP ops)
 
 ## Method notes
